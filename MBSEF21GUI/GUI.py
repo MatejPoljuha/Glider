@@ -4,9 +4,13 @@ from tkinter import *
 import logging
 from PIL import Image, ImageTk
 import threading
-
+import sys
 import time
-from MBSEF21GUI.IMG_rendering import make_overlay
+from MBSEF21GUI.IMG_rendering import *
+from MBSEF21GUI.GUI_networking import *
+import queue
+
+
 
 
 flight_mode = "Longest Flight"
@@ -40,7 +44,12 @@ def getInputBoxValue():
 
 def RunNavigation():
     
-    print('Run navigation')
+    message={}
+    message['flight_mode'] = flight_mode
+    message['destination'] = destination_position
+    
+    CLIENT_json_send_dict_GUI_side(message)
+    #print('Run navigation')
     
     
 root = Tk()
@@ -86,7 +95,7 @@ Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), 
 
 
 destination_position=[0,0]
-destination_position_SET=[0,0]
+
 
 
 aircraft_position = [0,0]
@@ -112,12 +121,16 @@ def refreshCanvas():
     global MapCanvas
     global image_on_canvas
     global picture_file
-    
+    global data_queue
   
     global destination_position, aircraft_position,destinationSET
   
-    aircraft_position = [300 ,100]
-   
+    #aircraft_position = [300 ,100]
+    
+    rec=None
+    while not data_queue.empty():
+        rec = data_queue.get()
+        aircraft_position = rec['aircraft_position']
    
     imgA = make_overlay(destination_position, aircraft_position)
     
@@ -129,7 +142,7 @@ def refreshCanvas():
     root.after(50, refreshCanvas)
     
     
-    
+'''    
 def thread_function(name):
     global app_closed
     
@@ -143,13 +156,34 @@ def thread_function(name):
 
 x = threading.Thread(target=thread_function, args=(1,))
 x.start()
+'''
+
+data_queue = queue.Queue()
+
+y = threading.Thread(target=SERVER_json_for_GUI_side, args=(data_queue,))
+y.daemon = True
+y.start()
 
 
+
+
+### SIMULATED DPS (CENTRAL COMPUTER)
+y = threading.Thread(target=SERVER_json_for_DPS_side, args=())
+y.daemon = True
+y.start()
     
+y = threading.Thread(target=My_simulator_of_DPS_messages_with, args=())
+y.daemon = True
+y.start() 
+######## 
+         
+         
+         
          
 refreshCanvas()
 root.mainloop()
 
 app_closed=True
 
-x.join()
+#x.join()
+#sys.exit()
