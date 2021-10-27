@@ -7,7 +7,7 @@ edges = [(0,1,1),(0,2,1),(1,2,1),(2,4,1),(1,3,1),(1,4,1),(3,5,1),(3,4,1),(4,5,1)
 n_edge, n_node = len(edges), len(nodes)
 
 #construct the graph using networkx
-Graph = nx.DiFraph()
+Graph = nx.DiGraph()
 Graph.add_nodes_from(nodes)
 Graph.add_weighted_edges_from(edges)
 
