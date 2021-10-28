@@ -61,11 +61,11 @@ root.title('Glider Navigation System')
 root.resizable(width=False, height=False)
 
 # First, we create a canvas to put the picture on
-MapCanvas= Canvas(root, height=500, width=500)
+MapCanvas= Canvas(root, height=512, width=512)
 # Then, we actually create the image file to use (it has to be a *.gif)
 picture_file = PhotoImage(file = 'map.png')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
-image_on_canvas  = MapCanvas.create_image(500, 0, anchor=NE, image=picture_file)
+image_on_canvas  = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)
 Label(root, text="click on map to set destination", bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=100, y=530)
 
@@ -104,7 +104,7 @@ aircraft_position = [0,0]
 
 def callback(event):
     global destination_position, aircraft_position,destinationSET
-    #print ("clicked at", event.x, event.y)
+    print ("clicked at", event.x, event.y)
     destination_position = [event.x,event.y]
 
     
