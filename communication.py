@@ -10,8 +10,7 @@ def receive_server(receiving_port: int, comm_queue: queue.Queue = None, host_ip=
     Sets up a socket that listens for incoming connections and receives data.
     :param receiving_port: port on which the socket listens on
     :param comm_queue: queue in which the received data is pushed
-    :param host_ip: localhost
-    :return:
+    :param host_ip: host device address on which the socket listens on
     """
     # creates socket object and allows it to be reused if program is relaunched (needed for Linux/Mac)
     with socket.socket() as sock:
@@ -40,6 +39,12 @@ def receive_server(receiving_port: int, comm_queue: queue.Queue = None, host_ip=
 
 
 def send_client(destination_port: int, input_dict: dict, host_ip='127.0.0.1'):
+    """
+    Converts input dictionary into json, creates a socket, sends the data to a destination port on a destination address.
+    :param destination_port: port to which the data is sent
+    :param input_dict: data to be sent
+    :param host_ip: host device address to which the data is sent
+    """
     # converts input dictionary into json
     json_to_send = json.dumps(input_dict)
 
@@ -59,6 +64,9 @@ def send_client(destination_port: int, input_dict: dict, host_ip='127.0.0.1'):
 
 
 def simulate_dps_messages():
+    """
+    Simulates the glider changing position every 3 seconds, placeholder function - to be replaced when DPS is implemented.
+    """
     while True:
         temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)]}
         send_client(destination_port=1501, input_dict=temp_dict)
