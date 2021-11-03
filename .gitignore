@@ -1,2 +1,6 @@
 .pydevproject
 .project
+.idea
+.venv
+.env
+.DS_store

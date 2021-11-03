@@ -9,7 +9,7 @@ import time
 from MBSEF21GUI.IMG_rendering import *
 from MBSEF21GUI.GUI_networking import *
 import queue
-
+from communication import *
 
 
 
@@ -44,11 +44,11 @@ def getInputBoxValue():
 
 def RunNavigation():
     
-    message={}
+    message = {}
     message['flight_mode'] = flight_mode
     message['destination'] = destination_position
-    
-    CLIENT_json_send_dict_GUI_side(message)
+
+    send_client(1500, message)
     #print('Run navigation')
     
     
@@ -63,9 +63,9 @@ root.resizable(width=False, height=False)
 # First, we create a canvas to put the picture on
 MapCanvas= Canvas(root, height=512, width=512)
 # Then, we actually create the image file to use (it has to be a *.gif)
-picture_file = PhotoImage(file = 'map.png')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
+picture_file = PhotoImage(file = '/home/matej/Desktop/MBSEF21/MBSEF21GUI/map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
-image_on_canvas  = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
+image_on_canvas = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)
 Label(root, text="click on map to set destination", bg='#F0F8FF', font=('arial', 12, 'normal')).place(x=100, y=530)
 
@@ -160,7 +160,7 @@ x.start()
 
 data_queue = queue.Queue()
 
-y = threading.Thread(target=SERVER_json_for_GUI_side, args=(data_queue,))
+y = threading.Thread(target=receive_server, args=(1501, data_queue))
 y.daemon = True
 y.start()
 
@@ -168,14 +168,16 @@ y.start()
 
 
 ### SIMULATED DPS (CENTRAL COMPUTER)
-y = threading.Thread(target=SERVER_json_for_DPS_side, args=())
+y = threading.Thread(target=receive_server, args=(1500,))
 y.daemon = True
 y.start()
-    
-y = threading.Thread(target=My_simulator_of_DPS_messages_with, args=())
+
+# sleep(3)
+y = threading.Thread(target=simulate_dps_messages, args=())
 y.daemon = True
-y.start() 
-######## 
+y.start()
+
+########
          
          
          
