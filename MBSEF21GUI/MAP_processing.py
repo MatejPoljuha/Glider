@@ -71,13 +71,13 @@ def process_image_and_extract_line_parameters(map_file):
                 middle_point_list.append(middle_point)
                 node_list.append(node)
                 
-                #print(derived_line_angle,coefficients,middle_point)
+                print(derived_line_angle,coefficients,middle_point)
     return (coefficients_list,derived_line_angle_list,middle_point_list,node_list)     
 
 
 def generate_test_vector_field():
     
-    block_size = 10 #10 by 10 pixel vector field block
+    block_size = 30 #10 by 10 pixel vector field block
     image_size = 512
     central_points_of_boxes= np.round(np.arange(0.5*(image_size/block_size),image_size-0.5*(image_size/block_size),block_size)).astype(int) # same for x and y
     
@@ -118,8 +118,8 @@ def generate_test_vector_field():
 
 
 
-(default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
-print(coordinates_for_plot)
-#process_image_and_extract_line_parameters('imag.svg')
+#(default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
+#print(coordinates_for_plot)
+process_image_and_extract_line_parameters('imag.svg')
 
   

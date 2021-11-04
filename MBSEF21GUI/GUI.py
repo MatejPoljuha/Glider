@@ -63,7 +63,7 @@ root.resizable(width=False, height=False)
 # First, we create a canvas to put the picture on
 MapCanvas= Canvas(root, height=512, width=512)
 # Then, we actually create the image file to use (it has to be a *.gif)
-picture_file = PhotoImage(file = '/home/matej/Desktop/MBSEF21/MBSEF21GUI/map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
+picture_file = PhotoImage(file = 'map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
 image_on_canvas = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)
