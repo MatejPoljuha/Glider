@@ -36,7 +36,7 @@ def make_overlay(destination_position, aircraft_position):
     
     foreground = Image.open("placeholder.png")
     foreground = foreground.resize((30,30), Image.ANTIALIAS)
-    destination_position_internal = [destination_position[0],destination_position[1]-30]
+    destination_position_internal = [destination_position[0]-15,destination_position[1]-30]
     background.paste(foreground, tuple(destination_position_internal), foreground)
 
 
