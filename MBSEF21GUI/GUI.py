@@ -160,7 +160,7 @@ x.start()
 
 data_queue = queue.Queue()
 
-y = threading.Thread(target=receive_server, args=(1501, data_queue))
+y = threading.Thread(target=receive_server, args=(1501, data_queue, True))
 y.daemon = True
 y.start()
 
@@ -168,7 +168,7 @@ y.start()
 
 
 ### SIMULATED DPS (CENTRAL COMPUTER)
-y = threading.Thread(target=receive_server, args=(1500,))
+y = threading.Thread(target=receive_server, args=(1500, True))
 y.daemon = True
 y.start()
 
