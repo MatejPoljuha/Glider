@@ -33,7 +33,7 @@ def receive_server(receiving_port: int, comm_queue: queue.Queue = None, logging=
                 if logging:
                     print('Accepted connection from: ', address)
                 # receives the data and converts it into dictionary
-                json_received = json.loads(temp_socket.recv(1024))
+                json_received = json.loads(temp_socket.recv(60000))
                 if logging:
                     print("Json received -->", json_received)
 
@@ -75,6 +75,12 @@ def simulate_dps_messages():
     Simulates the glider changing position every 3 seconds, placeholder function - to be replaced when DPS is implemented.
     """
     while True:
-        temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)]}
+        
+        list_of_random_detected_uplifts=[]
+        for i in range(0,20):
+            ''''simulated uplift in some random position and random strenght. Sternght is send as 0 to 1 value. 0 is minimum, 1 is maximum'''
+            list_of_random_detected_uplifts.append({'x_pos':random.randint(0, 400),'y_pos':random.randint(0, 400),'rel_strength':random.random()})
+
+        temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)], 'uplift_position':list_of_random_detected_uplifts}
         send_client(destination_port=1501, input_dict=temp_dict)
         sleep(3.0)

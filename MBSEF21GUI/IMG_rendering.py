@@ -4,7 +4,7 @@ from MBSEF21GUI.MAP_processing import *
 
 
 
-def make_overlay(destination_position, aircraft_position):
+def make_overlay(destination_position, aircraft_position,uplift):
     
 
     
@@ -18,7 +18,18 @@ def make_overlay(destination_position, aircraft_position):
     line_segments = process_image_and_extract_line_segments('imag.svg')
 
     for element in line_segments:    
-        draw.line(element, fill=(200, 50, 200), width=5)
+        draw.line(element, fill=(0, 255, 0), width=5)
+
+
+
+    
+    for a in uplift:
+        x=a['x_pos']
+        y=a['y_pos']
+        r=a['rel_strength']*10 + 3
+        draw.ellipse((x-r, y-r, x+r, y+r), fill=(255,0,0,0), outline=(0, 0, 255, 255))
+
+
 
    
     (default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()

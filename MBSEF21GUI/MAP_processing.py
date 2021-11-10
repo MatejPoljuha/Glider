@@ -112,9 +112,7 @@ def generate_test_vector_field():
             
             
     return (default_same_windspeed_and_angle, coordinates_for_plot)  
-            
-    #print(vect_field)
-    #print(coordinates_for_plot)
+
 
 
 
