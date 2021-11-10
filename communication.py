@@ -3,7 +3,7 @@ import socket
 import random
 import queue
 from time import sleep
-
+from MBSEF21GUI.MAP_processing import * 
 
 def receive_server(receiving_port: int, comm_queue: queue.Queue = None, logging=True, host_ip='127.0.0.1'):
     """
@@ -76,11 +76,15 @@ def simulate_dps_messages():
     """
     while True:
         
-        list_of_random_detected_uplifts=[]
-        for i in range(0,20):
-            ''''simulated uplift in some random position and random strenght. Sternght is send as 0 to 1 value. 0 is minimum, 1 is maximum'''
-            list_of_random_detected_uplifts.append({'x_pos':random.randint(0, 400),'y_pos':random.randint(0, 400),'rel_strength':random.random()})
+        # list_of_random_detected_uplifts=[]
+        # for i in range(0,20):
+            # ''''simulated uplift in some random position and random strenght. Sternght is send as 0 to 1 value. 0 is minimum, 1 is maximum'''
+            # list_of_random_detected_uplifts.append({'x_pos':random.randint(0, 400),'y_pos':random.randint(0, 400),'rel_strength':random.random()})
+            #
+        
+        list_of_detected_uplifts = interraction_field_to_obstacle()    
 
-        temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)], 'uplift_position':list_of_random_detected_uplifts}
+
+        temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)], 'uplift_position':list_of_detected_uplifts}
         send_client(destination_port=1501, input_dict=temp_dict)
         sleep(3.0)

@@ -26,13 +26,13 @@ def make_overlay(destination_position, aircraft_position,uplift):
     for a in uplift:
         x=a['x_pos']
         y=a['y_pos']
-        r=a['rel_strength']*10 + 3
+        r=a['rel_strength']*3 + 3
         draw.ellipse((x-r, y-r, x+r, y+r), fill=(255,0,0,0), outline=(0, 0, 255, 255))
 
 
 
    
-    (default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
+    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)   = generate_test_vector_field()
         
     for row in coordinates_for_plot:
         for j, val in enumerate(row):

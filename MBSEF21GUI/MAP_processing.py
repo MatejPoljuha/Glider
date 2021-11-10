@@ -71,7 +71,7 @@ def process_image_and_extract_line_parameters(map_file):
                 middle_point_list.append(middle_point)
                 node_list.append(node)
                 
-                print(derived_line_angle,coefficients,middle_point)
+                #print(derived_line_angle,coefficients,middle_point)
     return (coefficients_list,derived_line_angle_list,middle_point_list,node_list)     
 
 
@@ -80,6 +80,8 @@ def generate_test_vector_field():
     block_size = 30 #10 by 10 pixel vector field block
     image_size = 512
     central_points_of_boxes= np.round(np.arange(0.5*(block_size),image_size-0.5*block_size,block_size)).astype(int) # same for x and y
+    left_edge_points_of_boxes = np.round(central_points_of_boxes- block_size/2).astype(int)
+    
     #central_points_of_boxes= np.round(np.arange(0.5*(image_size/block_size),image_size-0.5*(image_size/block_size),block_size)).astype(int) # same for x and y
     vect_field=np.zeros((len(central_points_of_boxes),len(central_points_of_boxes))).tolist()
     coordinates_for_plot=np.zeros((len(central_points_of_boxes),len(central_points_of_boxes))).tolist()
@@ -111,12 +113,54 @@ def generate_test_vector_field():
             row[c] = ((x0, y0, x1, y1))
             
             
-    return (default_same_windspeed_and_angle, coordinates_for_plot)  
+    return (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)  
 
 
+def interraction_field_to_obstacle():
+    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = generate_test_vector_field()
+    (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters("imag.svg")
+    
+    result_list=[]
+    
+    
+    print(left_edge_points_of_boxes)
+    for n,segment_angle in enumerate(derived_line_angle_list):
+        
+        value_of_point = middle_point_list[n]
+        x_found_index=0
+        y_found_index=0
+        
+        for index,val in enumerate(left_edge_points_of_boxes):
+            if value_of_point[0] < val:
+                break
+            else:
+                x_found_index = index
+        for index,val in enumerate(left_edge_points_of_boxes):
+            if value_of_point[1] < val:
+                break
+            else:
+                y_found_index = index
+        
+        wind=vect_field[x_found_index][y_found_index]
+        wind_angle = wind[0]
+        wind_strenght = wind[1]
+        
+        segment_relation = abs(cos((segment_angle-wind_angle)*6.28))
+        
+        output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength':segment_relation}
 
-
-(default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
+        
+        result_list.append(output_dict)
+        
+    return  result_list  
+        #print(x_found_index,y_found_index)
+                
+        #print(segment_angle,middle_point_list[n])
+        
+        
+        
+interraction_field_to_obstacle()
+#(default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
 #print(coordinates_for_plot)
 #process_image_and_extract_line_parameters('imag.svg')
 
