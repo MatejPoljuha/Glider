@@ -100,7 +100,7 @@ destination_position=[0,0]
 
 aircraft_position = [0,0]
 uplift_position=[]
-
+navigation_line=[]
 
 def callback(event):
     global destination_position, aircraft_position,destinationSET
@@ -123,7 +123,7 @@ def refreshCanvas():
     global picture_file
     global data_queue
   
-    global destination_position, aircraft_position,destinationSET,uplift_position
+    global destination_position, aircraft_position,destinationSET,uplift_position,navigation_line
   
     #aircraft_position = [300 ,100]
     
@@ -132,8 +132,9 @@ def refreshCanvas():
         rec = data_queue.get()
         aircraft_position = rec['aircraft_position']
         uplift_position = rec['uplift_position']
+        navigation_line = rec['navigation_line']
    
-    imgA = make_overlay(destination_position, aircraft_position,uplift_position)
+    imgA = make_overlay(destination_position, aircraft_position,uplift_position,navigation_line)
     
     picture_file = ImageTk.PhotoImage(imgA)
 
