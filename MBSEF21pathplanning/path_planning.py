@@ -1,21 +1,20 @@
-from MBSEF21GUI.GUI_networking import *
 from matplotlib import pyplot as plt
-from itertools import combinations
-from io import BytesIO
+from itertools import combinations, islice, count
+import heapq as hp
 import networkx as nx
 import threading
 import socket
 import random
+import time
 from time import sleep
 import numpy as np
 import base64
 import queue
 from dataclasses import dataclass, field
 from dps_simulator import *
-from communication import *
+from communication import send_client, receive_server
 from math import dist
 from typing import List
-
 
 # 50 means 50m horizontal travel for every 1m of altitude lost
 GLIDE_RATIO = 50
@@ -29,7 +28,7 @@ class Aircraft:
 
 @dataclass
 class GUIInput:
-    destination_position: list
+    destination_position: tuple = (0, 0, 0)
     navigation_mode: str = 'fastest'
 
 
@@ -70,44 +69,139 @@ def plan_path():
                            gui_data.navigation_mode)
 
 
-def calculate_plan(node_data, starting_position, destination_position, navigation_mode):
-    print('DIJKSTRA INPUT: ')
-    print('\nNode data: ', node_data)
-    print('\nStarting position: ', starting_position)
-    print('\nDestination position: ', destination_position)
-    print('\nNavigation mode: ', navigation_mode)
-
-    graph = create_graph(node_data, create_edges_test())
-
-    coordinates = nx.get_node_attributes(graph, 'coordinates')
-    uplift = nx.get_node_attributes(graph, 'uplift')
-
-    visualize_graph(graph, coordinates)
-
-
-def create_graph(node_list, edge_list):
+def create_graph(node_list, starting_position, destination_position):
     graph = nx.Graph()
+
+    # creates graph nodes
     graph.add_nodes_from(node_list)
     nx.set_node_attributes(graph, node_list)
-    graph.add_weighted_edges_from(edge_list)
+
+    # creates graph edges
+    edges = combinations(node_list, 2)
+
+    # adds weights to edges (euclidean distance based on coordinates)
+    weighted_edges = []
+    for edge in edges:
+        edge = list(edge)
+        edge.append(dist(graph.nodes(data='coordinates')[edge[0]],
+                         graph.nodes(data='coordinates')[edge[1]]))
+        weighted_edges.append(edge)
+    graph.add_weighted_edges_from(weighted_edges)
 
     return graph
 
 
-def create_edges_test():
-    # return combinations(node_list, 2)
-    return [('2', '1', 1.1),
-            ('8', '3', 1.0),
-            ('1', '3', 4.2),
-            ('1', '2', 1.2),
-            ('2', '5', 2.3),
-            ('3', '4', 1.0),
-            ('5', '4', 2.1),
-            ('2', '6', 3.3)]
+def calculate_plan(node_data, starting_position, destination_position, navigation_mode):
+    """print('DIJKSTRA INPUT: ')
+    print('\nNode data: ', node_data)
+    print('\nStarting position: ', starting_position)
+    print('\nDestination position: ', destination_position)
+    print('\nNavigation mode: ', navigation_mode)"""
+
+    graph = create_graph(node_data, starting_position, destination_position)
+
+    coordinates = nx.get_node_attributes(graph, 'coordinates')
+    uplift = nx.get_node_attributes(graph, 'uplift')
+
+    """t1 = time.time()
+    path = astar(graph, '1', '180')
+    t2 = time.time()
+    print(path, t2-t1)"""
+
+    t1 = time.time()
+    paths = nx.shortest_simple_paths(graph, '1', '180', weight='weight')
+    t2 = time.time()
+
+    """for path in paths:
+        print(path)"""
+
+    print('All: ', t2-t1, 'seconds')
+
+    t3 = time.time()
+    paths = islice(nx.shortest_simple_paths(graph, '1', '180', weight='weight'), 10)
+    t4 = time.time()
+    print('First 10: ', t4-t3, 'seconds')
 
 
-def create_edges(node_list):
-    pass
+
+
+    for path in paths:
+        print(path)
+    print('-----------------------')
+    # visualize_graph(graph, coordinates)
+
+
+def astar(G, source, target, heuristic=None, weight="weight"):
+    if source not in G or target not in G:
+        msg = f"Either source {source} or target {target} is not in G"
+        raise nx.NodeNotFound(msg)
+
+    if heuristic is None:
+        # The default heuristic is h=0 - same as Dijkstra's algorithm
+        def heuristic(u, v):
+            return 0
+
+    push = hp.heappush
+    pop = hp.heappop
+    weight = nx.shortest_paths.weighted._weight_function(G, weight)
+
+    # The queue stores priority, node, cost to reach, and parent.
+    # Uses Python heapq to keep in priority order.
+    # Add a counter to the queue to prevent the underlying heap from
+    # attempting to compare the nodes themselves. The hash breaks ties in the
+    # priority and is guaranteed unique for all nodes in the graph.
+    c = count()
+    queue = [(0, next(c), source, 0, None)]
+
+    # Maps enqueued nodes to distance of discovered paths and the
+    # computed heuristics to target. We avoid computing the heuristics
+    # more than once and inserting the node into the queue too many times.
+    enqueued = {}
+    # Maps explored nodes to parent closest to the source.
+    explored = {}
+
+    while queue:
+        # Pop the smallest item from queue.
+        _, __, curnode, dist, parent = pop(queue)
+
+        if curnode == target:
+            path = [curnode]
+            node = parent
+            while node is not None:
+                path.append(node)
+                node = explored[node]
+            path.reverse()
+            return path
+
+        if curnode in explored:
+            # Do not override the parent of starting node
+            if explored[curnode] is None:
+                continue
+
+            # Skip bad paths that were enqueued before finding a better one
+            qcost, h = enqueued[curnode]
+            if qcost < dist:
+                continue
+
+        explored[curnode] = parent
+
+        for neighbor, w in G[curnode].items():
+            ncost = dist + weight(curnode, neighbor, w)
+            if neighbor in enqueued:
+                qcost, h = enqueued[neighbor]
+                # if qcost <= ncost, a less costly path from the
+                # neighbor to the source was already determined.
+                # Therefore, we won't attempt to push this neighbor
+                # to the queue
+                if qcost <= ncost:
+                    continue
+            else:
+                h = heuristic(neighbor, target)
+            enqueued[neighbor] = ncost, h
+            push(queue, (ncost + h, next(c), neighbor, ncost, curnode))
+
+    raise nx.NetworkXNoPath(f"Node {target} not reachable from {source}")
+
 
 
 def visualize_graph(g, node_positions):
@@ -159,11 +253,3 @@ if __name__ == '__main__':
 
     # -------------------------------------------------- MAIN --------------------------------------------------
     main()
-
-
-"""
-def flight_mode_cost_function(src, dest, edge_attributes):
-    weight = edge_attributes.get("weight", 1) * random.randint(1, 30)
-    print(weight)
-    return weight
-"""
