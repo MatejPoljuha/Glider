@@ -87,7 +87,7 @@ def simulate_dps_messages():
         '''simulates path based on node positions - normally provided by Matej''' 
         navigation_line_sim=[]
         
-        start_index = 10
+        start_index = random.randint(0, 20)
         old_x=list_of_detected_uplifts[0+start_index]['x_pos']
         old_y=list_of_detected_uplifts[0+start_index]['y_pos']
         for i in range(1+start_index,15+start_index):
