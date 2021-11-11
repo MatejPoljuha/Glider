@@ -5,3 +5,5 @@
 .env
 .DS_store
 .pyc
+__pycache__/
+MBSEF21GUI/__pycache__/
