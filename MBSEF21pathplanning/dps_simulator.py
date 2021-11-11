@@ -7,7 +7,7 @@ from communication import *
 def simulate_dps_input():
     while True:
         temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400), random.randint(0, 400)]}
-        for i in range(10):
+        for i in range(300):
             temp_dict[str(i+1)] = {
                 'coordinates': [random.randint(0, 400), random.randint(0, 400)],
                 'uplift': random.randint(0, 100),
