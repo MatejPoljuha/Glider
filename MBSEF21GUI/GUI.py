@@ -13,6 +13,7 @@ from communication import *
 
 
 
+
 flight_mode = "Longest Flight"
 app_closed=False
 
@@ -43,11 +44,11 @@ def getInputBoxValue():
     return userInput
 
 def RunNavigation():
-    
+    global tInput
     message = {}
     message['flight_mode'] = flight_mode
     message['destination'] = destination_position
-
+    #message['min_safe_altitude'] = tInput.get()
     send_client(1500, message)
     #print('Run navigation')
     
@@ -83,11 +84,13 @@ my_label  = Label(root, text=flight_mode, bg='#F0F8FF', font=('arial', 12, 'norm
 my_label.place(x=850, y=200)
 
 # This is the section of code which creates a text input box
+my_label  = Label(root, text="Min. safe altitude", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label.place(x=850, y=300)
 tInput=Entry(root)
-tInput.place(x=850, y=250)
+tInput.place(x=850, y=350)
 
 #Button(root, text='Set Destination', bg='#F0F8FF', font=('arial', 12, 'normal'), command=SetDestination).place(x=850, y=350)
-Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), command=RunNavigation).place(x=850, y=400)
+Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), command=RunNavigation).place(x=850, y=450)
 
 
 
@@ -168,9 +171,9 @@ y.start()
 
 
 
-
+serve_sim_queue = queue.Queue()
 ### SIMULATED DPS (CENTRAL COMPUTER)
-y = threading.Thread(target=receive_server, args=(1500, True))
+y = threading.Thread(target=receive_server, args=(1500, serve_sim_queue, True))
 y.daemon = True
 y.start()
 
