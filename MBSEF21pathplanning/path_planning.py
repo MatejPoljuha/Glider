@@ -115,19 +115,32 @@ def calculate_plan(node_data, starting_position, destination_position, navigatio
     """for path in paths:
         print(path)"""
 
-    print('All: ', t2-t1, 'seconds')
+    # print('Time to find all paths: ', t2-t1, 'seconds')
 
     t3 = time.time()
-    paths = islice(nx.shortest_simple_paths(graph, '1', '180', weight='weight'), 10)
-    t4 = time.time()
-    print('First 10: ', t4-t3, 'seconds')
-
-
-
-
     for path in paths:
-        print(path)
-    print('-----------------------')
+        starting_alt = 130
+        destination_alt = 300
+        alt_change = 0
+        # print('Testing path: ', path)
+        for index, node in enumerate(path[1:]):
+            # print(index, node)
+            # print('Testing edge: [', path[index], ', ', node, ']')
+            travel_loss = graph.get_edge_data(path[index], node)['weight']
+            travel_loss /= GLIDE_RATIO
+            uplift_gain = graph.nodes(data='uplift')[node]
+            # print('Altitude lost due to horizontal travel: ', travel_loss)
+            # print('Altitude gained due to uplift: ', uplift_gain)
+            alt_change += travel_loss + uplift_gain
+        if starting_alt + alt_change > destination_alt:
+            print('Starting altitude + altitude change, destination altitude: ', starting_alt + alt_change, destination_alt)
+            print('Shortest path: ', path)
+            print('----------------------------------')
+            break
+    t4 = time.time()
+    print('Time to find shortest valid path: ', t4 - t3, 'seconds')
+    print('----------------------------------')
+
     # visualize_graph(graph, coordinates)
 
 
@@ -201,7 +214,6 @@ def astar(G, source, target, heuristic=None, weight="weight"):
             push(queue, (ncost + h, next(c), neighbor, ncost, curnode))
 
     raise nx.NetworkXNoPath(f"Node {target} not reachable from {source}")
-
 
 
 def visualize_graph(g, node_positions):
