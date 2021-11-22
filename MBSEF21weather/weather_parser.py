@@ -1,13 +1,37 @@
 import requests
 import time
 import json
+import socket
 from datetime import datetime
 
 # location = "Los Angeles"
 
-# hardcode lat and long of the map of los angeles. Make several hundred calls over a few minutes and save it so we dont have to wait for it to update.
-# 20 x 20 grid. to save weather data, make a message containing longditude(box_y), latitude(box_x), speed, angle, timestamp. Also you can
-# store json files.
+def send_client(destination_port: int, input_dict: dict, logging=True, host_ip='127.0.0.1'):
+    """
+    Converts input dictionary into json, creates a socket, sends the data to a destination port on a destination address.
+    :param destination_port: port to which the data is sent
+    :param input_dict: data to be sent
+    :param logging: if True, the prints happen, if False they don't
+    :param host_ip: host device address to which the data is sent
+    """
+    # converts input dictionary into json
+    json_to_send = json.dumps(input_dict)
+
+    # creates socket object and allows it to be reused if program is relaunched (needed for Linux/Mac)
+    with socket.socket() as sock:
+        # try to connect to the server socket and send the dictionary(json) to it
+        try:
+            sock.connect((host_ip, destination_port))
+            sock.send(json_to_send.encode('utf-8'))
+        except ConnectionRefusedError:
+            # this is not subject to the logging parameter
+            print('Connection refused on port: ', destination_port)
+
+        if logging:
+            print(json_to_send, 'was sent to server on port: ', destination_port)
+
+        # close socket after sending the data
+        sock.close()
 
 dict_list = []
 
@@ -24,7 +48,7 @@ for i in range(0, 11, 1):
         time.sleep(0.1)
 
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime("%y/%m/%d %H:%M:%S")
 
         # print (api_data)
 
@@ -58,6 +82,10 @@ for i in range(0, 11, 1):
                   " Current wind speed:", wind_spd, 'm/s',
                   wind_deg, 'deg')
 
-with open("dictionary.json", "w") as write_file:
+
+with open("weather.json", "w") as write_file:
     json.dump(dict_list, write_file)
+
+send_client(destination_port=1501, input_dict=dict_list)
+
 # end
