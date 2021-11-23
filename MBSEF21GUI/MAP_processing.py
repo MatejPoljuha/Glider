@@ -6,7 +6,7 @@ import numpy as np
 import math
 from math import sqrt, sin, cos
 from numpy import angle
-
+import json
 
 
 
@@ -75,7 +75,7 @@ def process_image_and_extract_line_parameters(map_file):
     return (coefficients_list,derived_line_angle_list,middle_point_list,node_list)     
 
 
-def generate_test_vector_field():
+def generate_test_vector_field_origin():
     
     block_size = 30 #10 by 10 pixel vector field block
     image_size = 512
@@ -115,6 +115,51 @@ def generate_test_vector_field():
             
     return (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)  
 
+def generate_test_vector_field():
+    filename = 'dictionary.json'
+    with open(filename) as f:
+        weather_data = json.load(f)
+    wind_x = []
+    wind_y = []
+    wind_deg = []
+    wind_speed = []
+
+    block_size = 45
+    image_size = 512
+    central_points_of_boxes = np.round(np.arange(0.5 * block_size, image_size - 0.5 * block_size, block_size))
+    left_edge_points_of_boxes = np.round(central_points_of_boxes - block_size / 2).astype(int)
+
+    vect_field = np.zeros((len(central_points_of_boxes), len(central_points_of_boxes))).tolist()  # 11*11
+    coordinates_for_plot = np.zeros((len(central_points_of_boxes), len(central_points_of_boxes))).tolist()
+    n = 0
+
+    # vector field
+    for row in vect_field:
+        for j, val in enumerate(row):
+            deg = weather_data[n]['data']['deg']
+            speed = weather_data[n]['data']['speed']
+            angle_and_speed = [deg, speed]
+            row[j] = angle_and_speed
+            n = n+1
+    # print(vect_field)
+
+    # coordinates for plot
+    n = 0
+    for r, row in enumerate(coordinates_for_plot):
+        for c, val in enumerate(row):
+            wind_angle = vect_field[r][c][0]
+            wind_speed = vect_field[r][c][1]
+            x0 = central_points_of_boxes[r]
+            y0 = central_points_of_boxes[c]
+
+            line_len = block_size * (sqrt(2) / 2)
+            x1 = int(x0 + line_len * cos(wind_angle * 3.14 / 180))
+            y1 = int(y0 + line_len * sin(wind_angle * 3.14 / 180))
+            row[c] = (x0, y0, x1, y1)
+
+    return vect_field, coordinates_for_plot, central_points_of_boxes, left_edge_points_of_boxes
+
+
 
 def interraction_field_to_obstacle():
     (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = generate_test_vector_field()
@@ -146,7 +191,7 @@ def interraction_field_to_obstacle():
         wind_strenght = wind[1]
         
         segment_relation = abs(cos((segment_angle-wind_angle)*6.28))
-        
+        #segment_relation = cos((90-abs(segment_angle-wind_angle))*3.14/180)
         output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength':segment_relation}
 
         

@@ -32,7 +32,7 @@ def json_to_image(data,filename):
 
 
 
-################### THIS PART WILL BE USEFULL FOR MATEJ (my part has queue implemented, so take a look )
+################### THIS PART WILLprocess_image_and_extract_line_parameters BE USEFULL FOR MATEJ (my part has queue implemented, so take a look )
 
 def SERVER_json_for_DPS_side():
     sock = socket.socket()
