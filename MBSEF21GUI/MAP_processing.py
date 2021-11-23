@@ -59,11 +59,19 @@ def process_image_and_extract_line_parameters(map_file):
                 x1 = e.end.real
                 y1 = e.end.imag
                 
-                x=[x0, x1]
-                y=[y0, y1]
+                x=[round(x0), round(x1)]
+                y=[round(y0), round(y1)]
 
-                coefficients = np.polyfit(x, y, 1)
-                derived_line_angle = -math.atan(coefficients[0])*(360/6.28)
+                if(x[0]==x[1]):
+                    coefficients=[0,0]    
+                    derived_line_angle = 90;
+                elif(y[0]==y[1]):
+                    coefficients=[0,0]    
+                    derived_line_angle = 0;
+                else:
+                    coefficients = np.polyfit(x, y, 1)
+                    derived_line_angle = -math.atan(coefficients[0])*(360/6.28)
+                    
                 middle_point = [(x0+x1)/2,(y0+y1)/2]
                 node = [x,y]
                 coefficients_list.append(coefficients)
