@@ -14,10 +14,12 @@ from dataclasses import dataclass, field
 from dps_simulator import *
 from communication import send_client, receive_server
 from math import dist
-from typing import List
+from typing import List, Tuple, TypeVar
+import heapq
 
 # 50 means 50m horizontal travel for every 1m of altitude lost
 GLIDE_RATIO = 50
+T = TypeVar('T')
 
 
 @dataclass
@@ -30,6 +32,20 @@ class Aircraft:
 class GUIInput:
     destination_position: tuple = (0, 0, 0)
     navigation_mode: str = 'fastest'
+
+
+class PriorityQueue:
+    def __init__(self):
+        self.elements: List[Tuple[float, T]] = []
+
+    def empty(self) -> bool:
+        return not self.elements
+
+    def put(self, item: T, priority: float):
+        heapq.heappush(self.elements, (priority, item))
+
+    def get(self) -> T:
+        return heapq.heappop(self.elements)[1]
 
 
 def main():
@@ -99,121 +115,84 @@ def calculate_plan(node_data, starting_position, destination_position, navigatio
     print('\nNavigation mode: ', navigation_mode)"""
 
     graph = create_graph(node_data, starting_position, destination_position)
-
-    coordinates = nx.get_node_attributes(graph, 'coordinates')
-    uplift = nx.get_node_attributes(graph, 'uplift')
-
+    graph_slow = graph
+    # graph.remove_edge('1', '7')
     """t1 = time.time()
-    path = astar(graph, '1', '180')
+    print(graph.number_of_edges())
+    path = modified_a_star(graph, '1', '180', 200, 400)
+    print(graph.number_of_edges())
     t2 = time.time()
-    print(path, t2-t1)"""
-
-    t1 = time.time()
-    paths = nx.shortest_simple_paths(graph, '1', '180', weight='weight')
-    t2 = time.time()
-
-    """for path in paths:
-        print(path)"""
-
-    # print('Time to find all paths: ', t2-t1, 'seconds')
+    print('Modified A*: ', path, ' Time: ', t2 - t1)"""
 
     t3 = time.time()
-    for path in paths:
-        starting_alt = 130
-        destination_alt = 300
-        alt_change = 0
-        # print('Testing path: ', path)
-        for index, node in enumerate(path[1:]):
-            # print(index, node)
-            # print('Testing edge: [', path[index], ', ', node, ']')
-            travel_loss = graph.get_edge_data(path[index], node)['weight']
-            travel_loss /= GLIDE_RATIO
-            uplift_gain = graph.nodes(data='uplift')[node]
-            # print('Altitude lost due to horizontal travel: ', travel_loss)
-            # print('Altitude gained due to uplift: ', uplift_gain)
-            alt_change += travel_loss + uplift_gain
-        if starting_alt + alt_change > destination_alt:
-            print('Starting altitude + altitude change, destination altitude: ', starting_alt + alt_change, destination_alt)
-            print('Shortest path: ', path)
-            print('----------------------------------')
+    paths_slow = nx.shortest_simple_paths(graph_slow, '1', '180', weight='weight')
+    for path_slow in paths_slow:
+        print(path_slow)
+        if check_path_validity(path_slow, graph_slow, 200, 400, False):
             break
     t4 = time.time()
-    print('Time to find shortest valid path: ', t4 - t3, 'seconds')
-    print('----------------------------------')
+    print('Yen: ', path_slow, ' Time: ', t4 - t3)
 
     # visualize_graph(graph, coordinates)
 
 
-def astar(G, source, target, heuristic=None, weight="weight"):
-    if source not in G or target not in G:
-        msg = f"Either source {source} or target {target} is not in G"
-        raise nx.NodeNotFound(msg)
+def modified_a_star(graph, start, goal, alt_budget, goal_alt, remove_1=None, remove_2=None):
+    if remove_1 is not None and remove_2 is not None:
+        graph.remove_edge(remove_1, remove_2)
 
-    if heuristic is None:
-        # The default heuristic is h=0 - same as Dijkstra's algorithm
-        def heuristic(u, v):
-            return 0
+    frontier = PriorityQueue()
+    frontier.put(start, 0)
 
-    push = hp.heappush
-    pop = hp.heappop
-    weight = nx.shortest_paths.weighted._weight_function(G, weight)
+    came_from = {start: None}
+    cost_so_far = {start: 0}
+    solution = []
+    while not frontier.empty():
+        current = frontier.get()
 
-    # The queue stores priority, node, cost to reach, and parent.
-    # Uses Python heapq to keep in priority order.
-    # Add a counter to the queue to prevent the underlying heap from
-    # attempting to compare the nodes themselves. The hash breaks ties in the
-    # priority and is guaranteed unique for all nodes in the graph.
-    c = count()
-    queue = [(0, next(c), source, 0, None)]
-
-    # Maps enqueued nodes to distance of discovered paths and the
-    # computed heuristics to target. We avoid computing the heuristics
-    # more than once and inserting the node into the queue too many times.
-    enqueued = {}
-    # Maps explored nodes to parent closest to the source.
-    explored = {}
-
-    while queue:
-        # Pop the smallest item from queue.
-        _, __, curnode, dist, parent = pop(queue)
-
-        if curnode == target:
-            path = [curnode]
-            node = parent
-            while node is not None:
-                path.append(node)
-                node = explored[node]
-            path.reverse()
-            return path
-
-        if curnode in explored:
-            # Do not override the parent of starting node
-            if explored[curnode] is None:
-                continue
-
-            # Skip bad paths that were enqueued before finding a better one
-            qcost, h = enqueued[curnode]
-            if qcost < dist:
-                continue
-
-        explored[curnode] = parent
-
-        for neighbor, w in G[curnode].items():
-            ncost = dist + weight(curnode, neighbor, w)
-            if neighbor in enqueued:
-                qcost, h = enqueued[neighbor]
-                # if qcost <= ncost, a less costly path from the
-                # neighbor to the source was already determined.
-                # Therefore, we won't attempt to push this neighbor
-                # to the queue
-                if qcost <= ncost:
-                    continue
+        if current == goal:
+            potential_solution = reconstruct_path(came_from, start, current)
+            if not check_path_validity(potential_solution, graph, alt_budget, goal_alt, True):
+                solution = modified_a_star(graph, start, goal, alt_budget, goal_alt, potential_solution[-2], goal)
             else:
-                h = heuristic(neighbor, target)
-            enqueued[neighbor] = ncost, h
-            push(queue, (ncost + h, next(c), neighbor, ncost, curnode))
+                break
 
-    raise nx.NetworkXNoPath(f"Node {target} not reachable from {source}")
+        for next_node in graph.neighbors(current):
+            edge_weight = graph.get_edge_data(current, next_node)['weight']
+            new_cost = cost_so_far[current] + edge_weight
+
+            if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
+                cost_so_far[next_node] = new_cost
+                priority = new_cost + dist(graph.nodes[next_node]['coordinates'], graph.nodes[goal]['coordinates'])
+                frontier.put(next_node, priority)
+                came_from[next_node] = current
+    return solution   # Path not found / not possible
+
+
+def reconstruct_path(came_from, start, goal):
+    current = goal
+    path = []
+    while current != start:
+        path.append(current)
+        current = came_from[current]
+    path.append(start)
+    path.reverse()
+    return path
+
+
+def check_path_validity(path, graph, alt_budget, goal_alt, astar):
+    alt_achieved = alt_budget
+
+    for index, node in enumerate(path[1:]):
+        travel_loss = graph.get_edge_data(path[index], node)['weight']
+        travel_loss /= GLIDE_RATIO
+        uplift_gain = graph.nodes(data='uplift')[node]
+        alt_achieved += travel_loss + uplift_gain
+
+    if alt_achieved >= goal_alt:
+        # if astar: print(alt_budget, alt_achieved, goal_alt)
+        return True
+    else:
+        return False
 
 
 def visualize_graph(g, node_positions):
