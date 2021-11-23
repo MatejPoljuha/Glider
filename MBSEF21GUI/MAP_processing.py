@@ -149,6 +149,15 @@ def generate_test_vector_field():
         for c, val in enumerate(row):
             wind_angle = vect_field[r][c][0]
             wind_speed = vect_field[r][c][1]
+            if 0 < wind_angle <= 90:
+                wind_angle = wind_angle
+            elif 90 < wind_angle <= 180:
+                wind_angle = -(180 - wind_angle)
+            elif 180 < wind_angle <= 270:
+                wind_angle = wind_angle-180
+            elif 270< wind_angle <= 360:
+                wind_angle = -(360-wind_angle)
+            wind_angle = -wind_angle  # take inverse for plotting
             x0 = central_points_of_boxes[r]
             y0 = central_points_of_boxes[c]
 
@@ -185,18 +194,55 @@ def interraction_field_to_obstacle():
                 break
             else:
                 y_found_index = index
-        
+        '''
         wind=vect_field[x_found_index][y_found_index]
         wind_angle = wind[0]
         wind_strenght = wind[1]
         
         segment_relation = abs(cos((segment_angle-wind_angle)*6.28))
         #segment_relation = cos((90-abs(segment_angle-wind_angle))*3.14/180)
+        '''
+
+        wind = vect_field[x_found_index][y_found_index]
+        wind_angle = wind[0]
+        wind_strength = wind[1]
+        if 0 < wind_angle <= 90:
+            wind_angle = wind_angle
+        elif 90 < wind_angle <= 180:
+            wind_angle = -(180 - wind_angle)
+        elif 180 < wind_angle <= 270:
+            wind_angle = wind_angle - 180
+        elif 270 < wind_angle <= 360:
+            wind_angle = -(360 - wind_angle)
+
+        if (wind_angle * segment_angle) >= 0:
+            angle_dif = abs(wind_angle - segment_angle)
+        if wind_angle > 0 and segment_angle < 0:
+            angle_dif = wind_angle - segment_angle
+            if angle_dif > 90:
+                angle_dif = 180 - angle_dif
+        if segment_angle > 0 and wind_angle < 0:
+            angle_dif = segment_angle - wind_angle
+            if angle_dif > 90:
+                angle_dif = 180 - angle_dif
+        segment_relation = angle_dif / 90# * wind_strength/3
+        if segment_relation > 0.6:
+            segment_relation = segment_relation * 1.5
+            if segment_relation > 1:
+                segment_relation = 1
+        else:
+            segment_relation = segment_relation * 0.8
+            if segment_relation < 0.2:
+                segment_relation = 0
         output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength':segment_relation}
 
         
         result_list.append(output_dict)
-        
+    strengthlist = []
+    for a in result_list:
+        strength = a['rel_strength']
+        strengthlist.append(strength)
+    print(strengthlist)
     return  result_list  
         #print(x_found_index,y_found_index)
                 

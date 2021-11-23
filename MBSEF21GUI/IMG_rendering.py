@@ -25,7 +25,7 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line)
 
     
     for a in uplift:
-        strength = 1-a['rel_strength']
+        strength = a['rel_strength']
         x=a['x_pos']
         y=a['y_pos']
         r=3#a['rel_strength']*3 + 3
