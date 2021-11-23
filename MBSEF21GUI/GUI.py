@@ -66,7 +66,7 @@ MapCanvas= Canvas(root, height=512, width=512)
 # Then, we actually create the image file to use (it has to be a *.gif)
 fil_dir = os.path.dirname(os.path.abspath(__file__))
 #print(fil_dir)
-picture_file = PhotoImage(file = fil_dir+'/map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
+picture_file = PhotoImage(file = fil_dir+'/map.png')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
 image_on_canvas = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)

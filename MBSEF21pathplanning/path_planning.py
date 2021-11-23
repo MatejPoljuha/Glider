@@ -124,14 +124,16 @@ def calculate_plan(node_data, starting_position, destination_position, navigatio
     t2 = time.time()
     print('Modified A*: ', path, ' Time: ', t2 - t1)"""
 
-    t3 = time.time()
+    """t3 = time.time()
     paths_slow = nx.shortest_simple_paths(graph_slow, '1', '180', weight='weight')
-    for path_slow in paths_slow:
-        print(path_slow)
-        if check_path_validity(path_slow, graph_slow, 200, 400, False):
-            break
     t4 = time.time()
+    t5 = time.time()
+    for path_slow in paths_slow:
+        if check_path_validity(path_slow, graph_slow, 200, 600, False):
+            break
+    t6 = time.time()
     print('Yen: ', path_slow, ' Time: ', t4 - t3)
+    print('Yen-check time: ', t6-t5)"""
 
     # visualize_graph(graph, coordinates)
 
