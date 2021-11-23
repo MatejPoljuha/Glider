@@ -8,14 +8,15 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line)
     
 
     
-    
-    background = Image.open("map.png").convert('RGB')
+    fil_dir = os.path.dirname(os.path.abspath(__file__))
+    #print(fil_dir)
+    background = Image.open(fil_dir+"/map.png").convert('RGB')
     
     
     
     draw = ImageDraw.Draw(background) 
     
-    line_segments = process_image_and_extract_line_segments('imag.svg')
+    line_segments = process_image_and_extract_line_segments(fil_dir+'/imag.svg')
 
     for element in line_segments:    
         draw.line(element, fill=(0, 255, 0), width=5)
@@ -47,7 +48,7 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line)
     elif destination_position[1]>background.size[1]:
         destination_position[1] = background.size[1]-1
     
-    foreground = Image.open("placeholder.png")
+    foreground = Image.open(fil_dir+"/placeholder.png")
     foreground = foreground.resize((30,30), Image.ANTIALIAS)
     destination_position_internal = [destination_position[0]-15,destination_position[1]-30]
     background.paste(foreground, tuple(destination_position_internal), foreground)
@@ -62,7 +63,7 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line)
         aircraft_position[1] = background.size[1]-1
         
     #print("DP",destination_position , "AP",aircraft_position)   
-    foreground = Image.open("aeroplane.png")
+    foreground = Image.open(fil_dir+"/aeroplane.png")
     foreground = foreground.resize((30,30), Image.ANTIALIAS)
     aircraft_position_internal = [aircraft_position[0],aircraft_position[1]-15]
     background.paste(foreground, tuple(aircraft_position_internal), foreground)
