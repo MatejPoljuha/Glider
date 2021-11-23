@@ -64,7 +64,9 @@ root.resizable(width=False, height=False)
 # First, we create a canvas to put the picture on
 MapCanvas= Canvas(root, height=512, width=512)
 # Then, we actually create the image file to use (it has to be a *.gif)
-picture_file = PhotoImage(file = 'map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
+fil_dir = os.path.dirname(os.path.abspath(__file__))
+#print(fil_dir)
+picture_file = PhotoImage(file = fil_dir+'/map.PNG')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
 image_on_canvas = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)
@@ -173,9 +175,9 @@ y.start()
 
 serve_sim_queue = queue.Queue()
 ### SIMULATED DPS (CENTRAL COMPUTER)
-y = threading.Thread(target=receive_server, args=(1500, serve_sim_queue, True))
-y.daemon = True
-y.start()
+#y = threading.Thread(target=receive_server, args=(1500, serve_sim_queue, True))
+#y.daemon = True
+#y.start()
 
 # sleep(3)
 y = threading.Thread(target=simulate_dps_messages, args=())

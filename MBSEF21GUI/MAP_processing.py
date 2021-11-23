@@ -7,7 +7,7 @@ import math
 from math import sqrt, sin, cos
 from numpy import angle
 import json
-
+import os
 
 
 
@@ -116,7 +116,9 @@ def generate_test_vector_field_origin():
     return (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)  
 
 def generate_test_vector_field():
-    filename = 'dictionary.json'
+    fil_dir = os.path.dirname(os.path.abspath(__file__))
+    #print(fil_dir)
+    filename = fil_dir+'/dictionary.json'
     with open(filename) as f:
         weather_data = json.load(f)
     wind_x = []
@@ -172,7 +174,10 @@ def generate_test_vector_field():
 
 def interraction_field_to_obstacle():
     (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = generate_test_vector_field()
-    (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters("imag.svg")
+    
+    fil_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imag.svg")
     
     result_list=[]
     
