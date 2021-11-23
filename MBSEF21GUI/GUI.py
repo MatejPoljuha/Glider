@@ -172,7 +172,6 @@ y.daemon = True
 y.start()
 
 
-
 serve_sim_queue = queue.Queue()
 ### SIMULATED DPS (CENTRAL COMPUTER)
 #y = threading.Thread(target=receive_server, args=(1500, serve_sim_queue, True))
@@ -180,9 +179,9 @@ serve_sim_queue = queue.Queue()
 #y.start()
 
 # sleep(3)
-y = threading.Thread(target=simulate_dps_messages, args=())
-y.daemon = True
-y.start()
+# y = threading.Thread(target=simulate_dps_messages, args=())
+# y.daemon = True
+# y.start()
 
 ########
          
