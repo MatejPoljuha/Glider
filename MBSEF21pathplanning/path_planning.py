@@ -1,25 +1,19 @@
-from matplotlib import pyplot as plt
-from itertools import combinations, islice, count
-import heapq as hp
-import networkx as nx
 import threading
-import socket
-import random
 import time
-from time import sleep
-import numpy as np
-import base64
-import queue
-from dataclasses import dataclass, field
-from dps_simulator import *
-from communication import send_client, receive_server
+from dataclasses import dataclass
+from itertools import combinations
+from typing import Sequence
 from math import dist
-from typing import List, Tuple, TypeVar
-import heapq
+
+import networkx as nx
+from matplotlib import pyplot as plt
+
+from communication import receive_server
+from dps_simulator import *
+
 
 # 50 means 50m horizontal travel for every 1m of altitude lost
 GLIDE_RATIO = 50
-T = TypeVar('T')
 
 
 @dataclass
@@ -30,29 +24,15 @@ class Aircraft:
 
 @dataclass
 class GUIInput:
-    destination_position: tuple = (0, 0, 0)
+    destination_position: Sequence = (0, 0, 0)
     navigation_mode: str = 'fastest'
-
-
-class PriorityQueue:
-    def __init__(self):
-        self.elements: List[Tuple[float, T]] = []
-
-    def empty(self) -> bool:
-        return not self.elements
-
-    def put(self, item: T, priority: float):
-        heapq.heappush(self.elements, (priority, item))
-
-    def get(self) -> T:
-        return heapq.heappop(self.elements)[1]
 
 
 def main():
     plan_path()
 
 
-# -------------------------------------------------- RECEIVING DATA --------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------
 def plan_path():
     while True:
         while not incoming_dps_data_queue.empty():
@@ -72,7 +52,7 @@ def plan_path():
             print('Node coordinates: ', node_coordinates)
             print('Node uplift data: ', node_uplift_data)"""
 
-            gui_data = GUIInput([0, 0, 0])
+            gui_data = GUIInput((0, 0, 0))
 
             if not incoming_gui_data_queue.empty():
                 received_gui_data = incoming_gui_data_queue.get()
@@ -116,58 +96,17 @@ def calculate_plan(node_data, starting_position, destination_position, navigatio
 
     graph = create_graph(node_data, starting_position, destination_position)
     graph_slow = graph
-    # graph.remove_edge('1', '7')
-    """t1 = time.time()
-    print(graph.number_of_edges())
-    path = modified_a_star(graph, '1', '180', 200, 400)
-    print(graph.number_of_edges())
-    t2 = time.time()
-    print('Modified A*: ', path, ' Time: ', t2 - t1)"""
 
-    """t3 = time.time()
     paths_slow = nx.shortest_simple_paths(graph_slow, '1', '180', weight='weight')
-    t4 = time.time()
-    t5 = time.time()
+
+    t3 = time.time()
     for path_slow in paths_slow:
-        if check_path_validity(path_slow, graph_slow, 200, 600, False):
+        if check_path_validity(path_slow, graph_slow, 200, 400, False):
+            t4 = time.time()
+            print('Yen: ', path_slow, 'time: ', t4 - t3)
             break
-    t6 = time.time()
-    print('Yen: ', path_slow, ' Time: ', t4 - t3)
-    print('Yen-check time: ', t6-t5)"""
 
     # visualize_graph(graph, coordinates)
-
-
-def modified_a_star(graph, start, goal, alt_budget, goal_alt, remove_1=None, remove_2=None):
-    if remove_1 is not None and remove_2 is not None:
-        graph.remove_edge(remove_1, remove_2)
-
-    frontier = PriorityQueue()
-    frontier.put(start, 0)
-
-    came_from = {start: None}
-    cost_so_far = {start: 0}
-    solution = []
-    while not frontier.empty():
-        current = frontier.get()
-
-        if current == goal:
-            potential_solution = reconstruct_path(came_from, start, current)
-            if not check_path_validity(potential_solution, graph, alt_budget, goal_alt, True):
-                solution = modified_a_star(graph, start, goal, alt_budget, goal_alt, potential_solution[-2], goal)
-            else:
-                break
-
-        for next_node in graph.neighbors(current):
-            edge_weight = graph.get_edge_data(current, next_node)['weight']
-            new_cost = cost_so_far[current] + edge_weight
-
-            if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
-                cost_so_far[next_node] = new_cost
-                priority = new_cost + dist(graph.nodes[next_node]['coordinates'], graph.nodes[goal]['coordinates'])
-                frontier.put(next_node, priority)
-                came_from[next_node] = current
-    return solution   # Path not found / not possible
 
 
 def reconstruct_path(came_from, start, goal):
@@ -187,11 +126,14 @@ def check_path_validity(path, graph, alt_budget, goal_alt, astar):
     for index, node in enumerate(path[1:]):
         travel_loss = graph.get_edge_data(path[index], node)['weight']
         travel_loss /= GLIDE_RATIO
+
+        # if glider crashes between nodes
+        if travel_loss >= alt_budget:
+            return False
+
         uplift_gain = graph.nodes(data='uplift')[node]
         alt_achieved += travel_loss + uplift_gain
-
     if alt_achieved >= goal_alt:
-        # if astar: print(alt_budget, alt_achieved, goal_alt)
         return True
     else:
         return False

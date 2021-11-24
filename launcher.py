@@ -1,5 +1,3 @@
-
-
 import subprocess
 #from MBSEF21GUI.GUI import *
 from MBSEF21weather.weather_streamer import *
