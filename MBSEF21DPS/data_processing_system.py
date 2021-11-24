@@ -1,6 +1,9 @@
 import queue
 from communication import *
+from MBSEF21GUI.MAP_processing import interraction_field_to_obstacle
 import threading
+import random
+from time import sleep
 
 
 def simulate_dps_messages():
