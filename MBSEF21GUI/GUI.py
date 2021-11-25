@@ -203,7 +203,8 @@ sdaf.start()
 sdafc = threading.Thread(target=run_weather_streamer, args=())
 sdafc.daemon = True
 sdafc.start()
-         
+
+
 refreshCanvas()
 root.mainloop()
 
