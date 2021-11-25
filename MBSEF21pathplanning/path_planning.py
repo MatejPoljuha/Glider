@@ -65,7 +65,7 @@ def plan_path():
                            gui_data.navigation_mode)
 
 
-def create_graph(node_list, starting_position, destination_position):
+def create_graph(node_list, starting_position, destination_position, starting_alt=0, destination_alt=0):
     graph = nx.Graph()
 
     # creates graph nodes
@@ -84,7 +84,20 @@ def create_graph(node_list, starting_position, destination_position):
         weighted_edges.append(edge)
     graph.add_weighted_edges_from(weighted_edges)
 
+    # remove nodes that represent nodes that we cannot reach from the start position due to low altitude/large distance
+    kill_unreachable_edges(graph, starting_position, 2)
+
     return graph
+
+
+def kill_unreachable_edges(graph, starting_position, starting_altitude):
+    edges_to_kill = []
+    for edge in graph.edges(starting_position, data="weight"):
+        if edge[2]/GLIDE_RATIO >= starting_altitude:
+            # print('Crash because starting alt: ', starting_altitude, ' but alt loss: ', edge[2]/GLIDE_RATIO)
+            edges_to_kill.append((edge[0], edge[1]))
+    graph.remove_edges_from(edges_to_kill)
+    print(graph.edges(starting_position))
 
 
 def calculate_plan(node_data, starting_position, destination_position, navigation_mode):
@@ -94,7 +107,7 @@ def calculate_plan(node_data, starting_position, destination_position, navigatio
     print('\nDestination position: ', destination_position)
     print('\nNavigation mode: ', navigation_mode)"""
 
-    graph = create_graph(node_data, starting_position, destination_position)
+    graph = create_graph(node_data, '1', destination_position)
     graph_slow = graph
 
     paths_slow = nx.shortest_simple_paths(graph_slow, '1', '180', weight='weight')
