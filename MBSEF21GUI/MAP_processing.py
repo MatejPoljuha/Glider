@@ -123,14 +123,14 @@ def generate_test_vector_field_origin():
             
     return (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)  
 
-def generate_test_vector_field(data_queue):
+def generate_test_vector_field(weather_data):
     fil_dir = os.path.dirname(os.path.abspath(__file__))
     #print(fil_dir)
     filename = fil_dir+'/dictionary.json'
 
-    while not data_queue.empty():
-        rec = data_queue.get()
-        weather_data = rec
+    #while not data_queue.empty():
+    #    rec = data_queue.get()
+    #    weather_data = rec
     # with open(filename) as f:
     #     weather_data = json.load(f)
     wind_x = []
@@ -184,8 +184,8 @@ def generate_test_vector_field(data_queue):
 
 
 
-def interraction_field_to_obstacle(data_queue):
-    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = generate_test_vector_field(data_queue)
+def interraction_field_to_obstacle(vec_field_data):
+    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = vec_field_data
     
     fil_dir = os.path.dirname(os.path.abspath(__file__))
     
