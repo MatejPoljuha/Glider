@@ -33,25 +33,12 @@ def run_data_processing_system():
             '''simulates path based on node positions - normally provided by Matej'''
             navigation_line_sim = []
 
-            # start_index = random.randint(0, 20)
-            # old_x = list_of_detected_uplifts[0 + start_index]['x_pos']
-            # old_y = list_of_detected_uplifts[0 + start_index]['y_pos']
-            # for i in range(1 + start_index, 15 + start_index):
-            #     new_x = list_of_detected_uplifts[i]['x_pos']
-            #     new_y = list_of_detected_uplifts[i]['y_pos']
-            #     navigation_line_sim.append((old_x, old_y, new_x, new_y))
-            #     old_x = new_x
-            #     old_y = new_y
-
-
             temp_dict = {'aircraft_position': [50, 50],
                          'uplift_position': list_of_detected_uplifts, 'navigation_line': navigation_line_sim,'vec_field_data': coordinates_for_plot}
-            # too much data!
             send_client(destination_port=1501, input_dict=temp_dict)
             dict_for_pathplanning= {'aircraft_position': [50, 50],
                          'uplift_position': list_of_detected_uplifts}
             send_client(destination_port=1507, input_dict=dict_for_pathplanning)
-            sleep(3.0)
 
     receiving_queue = queue.Queue()
 
