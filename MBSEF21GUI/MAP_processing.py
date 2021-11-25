@@ -267,7 +267,7 @@ def interraction_field_to_obstacle(data_queue):
         
         
         
-interraction_field_to_obstacle()
+#interraction_field_to_obstacle()
 #(default_same_windspeed_and_angle, coordinates_for_plot)   = generate_test_vector_field()
 #print(coordinates_for_plot)
 #process_image_and_extract_line_parameters('imag.svg')

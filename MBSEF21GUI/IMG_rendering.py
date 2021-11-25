@@ -4,7 +4,7 @@ from MBSEF21GUI.MAP_processing import *
 
 
 
-def make_overlay(destination_position, aircraft_position,uplift,navigation_line):
+def make_overlay(destination_position, aircraft_position,uplift,navigation_line,vec_field_data):
     
 
     
@@ -35,7 +35,7 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line)
 
 
    
-    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)   = generate_test_vector_field()
+    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)=vec_field_data#   = generate_test_vector_field()
         
     for row in coordinates_for_plot:
         for j, val in enumerate(row):

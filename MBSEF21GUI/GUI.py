@@ -138,8 +138,9 @@ def refreshCanvas():
         aircraft_position = rec['aircraft_position']
         uplift_position = rec['uplift_position']
         navigation_line = rec['navigation_line']
+        vec_field_data = rec['vec_field_data']
    
-    imgA = make_overlay(destination_position, aircraft_position,uplift_position,navigation_line)
+    imgA = make_overlay(destination_position, aircraft_position,uplift_position,navigation_line,vec_field_data)
     
     picture_file = ImageTk.PhotoImage(imgA)
 

@@ -33,9 +33,11 @@ def simulate_dps_messages():
             navigation_line_sim.append((old_x, old_y, new_x, new_y))
             old_x = new_x
             old_y = new_y
-
+            
+            
+        vec_field_data = generate_test_vector_field()
         temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)],
-                     'uplift_position': list_of_detected_uplifts, 'navigation_line': navigation_line_sim}
+                     'uplift_position': list_of_detected_uplifts, 'navigation_line': navigation_line_sim, 'vec_field_data': vec_field_data}
         send_client(destination_port=1501, input_dict=temp_dict)
         sleep(3.0)
 
