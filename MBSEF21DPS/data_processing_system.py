@@ -27,7 +27,7 @@ def simulate_dps_messages():
             
         vec_field_data = generate_test_vector_field(rec)
         list_of_detected_uplifts = interraction_field_to_obstacle(vec_field_data)
-        
+
 
         '''simulates path based on node positions - normally provided by Matej'''
         navigation_line_sim = []
@@ -45,6 +45,7 @@ def simulate_dps_messages():
             
         temp_dict = {'aircraft_position': [random.randint(0, 400), random.randint(0, 400)],
                      'uplift_position': list_of_detected_uplifts, 'navigation_line': navigation_line_sim, 'vec_field_data': vec_field_data}
+        # too much data!
         send_client(destination_port=1501, input_dict=temp_dict)
         sleep(3.0)
 

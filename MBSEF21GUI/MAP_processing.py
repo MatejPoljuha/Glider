@@ -194,7 +194,7 @@ def interraction_field_to_obstacle(vec_field_data):
     result_list=[]
     
     
-    print(left_edge_points_of_boxes)
+    # print(left_edge_points_of_boxes)
     for n,segment_angle in enumerate(derived_line_angle_list):
         
         value_of_point = middle_point_list[n]
@@ -264,7 +264,7 @@ def interraction_field_to_obstacle(vec_field_data):
     for a in result_list:
         strength = a['rel_strength']
         strengthlist.append(strength)
-    print(strengthlist)
+
     return  result_list  
         #print(x_found_index,y_found_index)
                 

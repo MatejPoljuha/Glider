@@ -88,7 +88,7 @@ def create_graph(node_list, starting_position, destination_position, starting_al
     kill_unreachable_edges(graph, starting_position, 2)
 
     return graph
-
+# 64 scaling factor
 
 def kill_unreachable_edges(graph, starting_position, starting_altitude):
     edges_to_kill = []

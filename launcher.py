@@ -1,8 +1,8 @@
 import subprocess
 
-#from MBSEF21weather.weather_streamer import *
-#from MBSEF21DPS.data_processing_system import *
-#from MBSEF21GUI.GUI import *
+from MBSEF21weather.weather_streamer import *
+from MBSEF21DPS.data_processing_system import *
+from MBSEF21GUI.GUI import *
 
 
 
