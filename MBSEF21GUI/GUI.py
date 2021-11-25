@@ -106,7 +106,7 @@ destination_position=[0,0]
 aircraft_position = [0,0]
 uplift_position=[]
 navigation_line=[]
-
+vec_field_data=([],[],[],[])
 def callback(event):
     global destination_position, aircraft_position,destinationSET
     print ("clicked at", event.x, event.y)
@@ -127,8 +127,8 @@ def refreshCanvas():
     global image_on_canvas
     global picture_file
     global data_queue
-  
-    global destination_position, aircraft_position,destinationSET,uplift_position,navigation_line
+   
+    global destination_position, aircraft_position,destinationSET,uplift_position,navigation_line,vec_field_data
   
     #aircraft_position = [300 ,100]
     
