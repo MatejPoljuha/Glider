@@ -126,15 +126,15 @@ def refreshCanvas():
     global MapCanvas
     global image_on_canvas
     global picture_file
-    global data_queue
+    global data_queue_GUI
    
     global destination_position, aircraft_position,destinationSET,uplift_position,navigation_line,vec_field_data
   
     #aircraft_position = [300 ,100]
     
     rec=None
-    while not data_queue.empty():
-        rec = data_queue.get()
+    while not data_queue_GUI.empty():
+        rec = data_queue_GUI.get()
         aircraft_position = rec['aircraft_position']
         uplift_position = rec['uplift_position']
         navigation_line = rec['navigation_line']
@@ -166,9 +166,9 @@ x = threading.Thread(target=thread_function, args=(1,))
 x.start()
 '''
 
-data_queue = queue.Queue()
+data_queue_GUI = queue.Queue()
 
-y = threading.Thread(target=receive_server, args=(1501, data_queue, True))
+y = threading.Thread(target=receive_server, args=(1501, data_queue_GUI, True))
 y.daemon = True
 y.start()
 
