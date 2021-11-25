@@ -36,7 +36,8 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line,
         y=a['y_pos']
         r=3#a['rel_strength']*3 + 3
         
-        color = strength-min(rel_strenght_list)*255 /(max(rel_strenght_list) - min(rel_strenght_list))
+        color = (strength-min(rel_strenght_list))*255 /(max(rel_strenght_list) - min(rel_strenght_list))
+        print(color)
         draw.ellipse((x-r, y-r, x+r, y+r), fill=(int(color),0,0,0), outline=(0, 0, 255, 255))
 
 
