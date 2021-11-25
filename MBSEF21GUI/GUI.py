@@ -48,7 +48,8 @@ def RunNavigation():
     message = {}
     message['flight_mode'] = flight_mode
     message['destination'] = destination_position
-    #message['min_safe_altitude'] = tInput.get()
+    message['dest_altitude'] = tInput1.get()
+    message['start_altitude'] = tInput2.get()
     send_client(1500, message)
     #print('Run navigation')
     
@@ -74,25 +75,33 @@ Label(root, text="click on map to set destination", bg='#F0F8FF', font=('arial',
 
 
 # This is the section of code which creates a button
-Button(root, text='Longest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeOne).place(x=850, y=100)
+Button(root, text='Longest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeOne).place(x=800, y=100)
 
 
 # This is the section of code which creates a button
-Button(root, text='Fastest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeTwo).place(x=850, y=150)
+Button(root, text='Fastest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeTwo).place(x=800, y=150)
 
 
 # This is the section of code which creates the a label
 my_label  = Label(root, text=flight_mode, bg='#F0F8FF', font=('arial', 12, 'normal'))
-my_label.place(x=850, y=200)
+my_label.place(x=800, y=200)
 
 # This is the section of code which creates a text input box
-my_label  = Label(root, text="Min. safe altitude", bg='#F0F8FF', font=('arial', 12, 'normal'))
-my_label.place(x=850, y=300)
-tInput=Entry(root)
-tInput.place(x=850, y=350)
+my_label  = Label(root, text="destination alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label.place(x=800, y=300)
+
+tInput1=Entry(root)
+tInput1.place(x=800, y=350)
+
+
+my_label  = Label(root, text="start alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label.place(x=800, y=400)
+
+tInput2=Entry(root)
+tInput2.place(x=800, y=450)
 
 #Button(root, text='Set Destination', bg='#F0F8FF', font=('arial', 12, 'normal'), command=SetDestination).place(x=850, y=350)
-Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), command=RunNavigation).place(x=850, y=450)
+Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), command=RunNavigation).place(x=800, y=500)
 
 
 
