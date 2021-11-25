@@ -10,7 +10,7 @@ from time import sleep
 import threading
 
 
-def send_weather_data():
+def run_weather_streamer():
     fil_dir = os.path.dirname(os.path.abspath(__file__))
 
     json_file_list = []
@@ -27,16 +27,3 @@ def send_weather_data():
             sleep(3)
             #print(json_dict)
 
-
-x = threading.Thread(target=send_weather_data, args=())
-x.daemon = True
-x.start()
-
-#print(txtfiles)    
-    
-
-
-
-#print(json_received)
-
-#send_client(destination_port=1501, input_dict=dict_list)

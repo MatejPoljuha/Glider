@@ -10,8 +10,8 @@ from MBSEF21GUI.IMG_rendering import *
 from MBSEF21GUI.GUI_networking import *
 import queue
 from communication import *
-
-
+from MBSEF21weather.weather_streamer import run_weather_streamer
+from MBSEF21DPS.data_processing_system import run_data_processing_system
 
 
 flight_mode = "Longest Flight"
@@ -195,8 +195,14 @@ serve_sim_queue = queue.Queue()
 
 ########
          
-         
-         
+
+sdaf = threading.Thread(target=run_data_processing_system, args=())
+sdaf.daemon = True
+sdaf.start()
+
+sdafc = threading.Thread(target=run_weather_streamer, args=())
+sdafc.daemon = True
+sdafc.start()
          
 refreshCanvas()
 root.mainloop()
