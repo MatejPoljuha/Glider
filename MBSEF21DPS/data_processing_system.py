@@ -44,7 +44,7 @@ def run_data_processing_system():
 
                 for index, element in enumerate(shortest_path[:-1]):
                     display_me.append((element[0], element[1], shortest_path[index+1][0], shortest_path[index+1][1]))
-                print('Path to display: ', display_me)
+                # print('Path to display: ', display_me)
 
             temp_dict = {'aircraft_position': [50, 50],
                          'uplift_position': list_of_detected_uplifts,

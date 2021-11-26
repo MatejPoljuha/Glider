@@ -76,6 +76,7 @@ def run_path_planning():
 
                 t3 = time()
                 for potential_path in potential_paths:
+                    # print(potential_path)
                     if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
                         t4 = time()
                         print('Yen: ', potential_path, 'time: ', t4 - t3)
@@ -108,8 +109,8 @@ def run_path_planning():
             edge = list(edge)
             # 1.25 is the scaling factor (to scale down to 100m)
             # real dimensions of map are 64 km x 64 km but it is 512 x 512 pixels
-            edge_node_1 = [coordinate*125 for coordinate in graph.nodes(data='coordinates')[edge[0]]]
-            edge_node_2 = [coordinate*125 for coordinate in graph.nodes(data='coordinates')[edge[1]]]
+            edge_node_1 = [coordinate for coordinate in graph.nodes(data='coordinates')[edge[0]]]
+            edge_node_2 = [coordinate for coordinate in graph.nodes(data='coordinates')[edge[1]]]
             # edge_weight is node distance in meters
             edge_weight = dist(edge_node_1, edge_node_2)
             edge.append(int(edge_weight))

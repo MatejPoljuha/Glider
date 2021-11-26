@@ -50,7 +50,7 @@ def RunNavigation():
     message['destination'] = destination_position
     message['dest_altitude'] = tInput1.get()
     message['start_altitude'] = tInput2.get()
-    send_client(1500, message)
+    send_client(1500, message, logging=False)
     #print('Run navigation')
     
     
