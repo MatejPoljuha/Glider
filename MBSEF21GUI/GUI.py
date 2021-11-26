@@ -12,7 +12,7 @@ import queue
 from communication import *
 from MBSEF21weather.weather_streamer import run_weather_streamer
 from MBSEF21DPS.data_processing_system import run_data_processing_system
-
+from MBSEF21pathplanning.path_planning import run_path_planning
 
 flight_mode = "Longest Flight"
 app_closed=False
@@ -177,7 +177,7 @@ x.start()
 
 data_queue_GUI = queue.Queue()
 
-y = threading.Thread(target=receive_server, args=(1501, data_queue_GUI, True))
+y = threading.Thread(target=receive_server, args=(1501, data_queue_GUI, False))
 y.daemon = True
 y.start()
 
@@ -196,14 +196,17 @@ serve_sim_queue = queue.Queue()
 ########
          
 
-sdaf = threading.Thread(target=run_data_processing_system, args=())
-sdaf.daemon = True
-sdaf.start()
+dps_thread = threading.Thread(target=run_data_processing_system, args=())
+dps_thread.daemon = True
+dps_thread.start()
 
-sdafc = threading.Thread(target=run_weather_streamer, args=())
-sdafc.daemon = True
-sdafc.start()
+weather_streamer_thread = threading.Thread(target=run_weather_streamer, args=())
+weather_streamer_thread.daemon = True
+weather_streamer_thread.start()
 
+path_planning_thread = threading.Thread(target=run_path_planning, args=())
+path_planning_thread.daemon = True
+path_planning_thread.start()
 
 refreshCanvas()
 root.mainloop()

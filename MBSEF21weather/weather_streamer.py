@@ -24,6 +24,6 @@ def run_weather_streamer():
                 json_dict = json.loads(read_file.read())
 
             send_client(destination_port=1505, input_dict=json_dict, logging=False)
-            sleep(15)
+            sleep(4)
             #print(json_dict)
 

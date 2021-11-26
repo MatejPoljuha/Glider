@@ -28,27 +28,54 @@ def run_data_processing_system():
             vec_field_data = generate_test_vector_field(rec)
             vect_field, coordinates_for_plot, central_points_of_boxes, left_edge_points_of_boxes = vec_field_data
             list_of_detected_uplifts = interraction_field_to_obstacle(vec_field_data)
+            # print(list_of_detected_uplifts)
+            # not sure if we can have 2 sleeps like this, could cause problems
+            """while dps_queue.empty():
+                sleep(0.2)"""
 
+            # could cause problems (99% sure it actually will), should NOT be sent along with the other data (aircraft_position, nodes and vector data)
+            shortest_path = []
+            display_me = []
 
-            '''simulates path based on node positions - normally provided by Matej'''
-            navigation_line_sim = []
+            # temporary code to not bloat GUI, listens for calculated shortest path to send them to GUI
+            while not path_receiving_queue.empty():
+                shortest_path = path_receiving_queue.get()
+                shortest_path = shortest_path['shortest_path']
+
+                for index, element in enumerate(shortest_path[:-1]):
+                    display_me.append((element[0], element[1], shortest_path[index+1][0], shortest_path[index+1][1]))
+                print('Path to display: ', display_me)
 
             temp_dict = {'aircraft_position': [50, 50],
-                         'uplift_position': list_of_detected_uplifts, 'navigation_line': navigation_line_sim,'vec_field_data': coordinates_for_plot}
-            send_client(destination_port=1501, input_dict=temp_dict)
-            dict_for_pathplanning= {'aircraft_position': [50, 50],
-                         'uplift_position': list_of_detected_uplifts}
-            send_client(destination_port=1507, input_dict=dict_for_pathplanning)
+                         'uplift_position': list_of_detected_uplifts,
+                         'navigation_line': display_me,
+                         'vec_field_data': coordinates_for_plot}
+            send_client(destination_port=1501, input_dict=temp_dict, logging=False)
 
-    receiving_queue = queue.Queue()
+            dict_for_path_planning = {'aircraft_position': [50, 50],
+                                      'uplift_position': list_of_detected_uplifts}
+            send_client(destination_port=1507, input_dict=dict_for_path_planning, logging=False)
 
-    y = threading.Thread(target=receive_server, args=(1505, receiving_queue, True))
-    y.daemon = True
-    y.start()
+    # renamed these variables to more descriptive names
+    weather_receiving_queue = queue.Queue()
+    path_receiving_queue = queue.Queue()
 
-    z = threading.Thread(target=simulate_dps_messages, args=(receiving_queue,))
-    z.daemon = True
-    z.start()
+    # listens for weather data from weather system (weather streamer)
+    listener_weather = threading.Thread(target=receive_server, args=(1505, weather_receiving_queue, False))
+    listener_weather.daemon = True
+    listener_weather.start()
 
-    z.join()
-    y.join()
+    # basically runs the dps system
+    dps_simulator = threading.Thread(target=simulate_dps_messages, args=(weather_receiving_queue,))
+    dps_simulator.daemon = True
+    dps_simulator.start()
+
+    # listens for calculated shortest path
+    listener_path = threading.Thread(target=receive_server, args=(1508, path_receiving_queue, False))
+    listener_path.daemon = True
+    listener_path.start()
+
+    # join the threads, maybe needed, maybe not
+    listener_weather.join()
+    listener_path.join()
+    dps_simulator.join()

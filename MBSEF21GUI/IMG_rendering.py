@@ -21,8 +21,8 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line,
     for element in line_segments:    
         draw.line(element, fill=(0, 255, 0), width=5)
 
-    for element in navigation_line:    
-        draw.line(element, fill=(255, 204, 0), width=6)
+    for element in navigation_line:
+        draw.line(element, fill=(255, 204, 0), width=2)
 
     rel_strenght_list=[]
     for a in uplift:
@@ -37,7 +37,7 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line,
         r=3#a['rel_strength']*3 + 3
         
         color = (strength-min(rel_strenght_list))*255 /(max(rel_strenght_list) - min(rel_strenght_list))
-        print(color)
+        # print(color)
         draw.ellipse((x-r, y-r, x+r, y+r), fill=(int(color),0,0,0), outline=(0, 0, 255, 255))
 
 
