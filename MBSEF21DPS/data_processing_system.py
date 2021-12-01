@@ -37,18 +37,17 @@ def run_data_processing_system():
             shortest_path = []
             display_me = []
 
-            # temporary code to not bloat GUI, listens for calculated shortest path to send them to GUI
+            """# temporary code to not bloat GUI, listens for calculated shortest path to send them to GUI
             while not path_receiving_queue.empty():
                 shortest_path = path_receiving_queue.get()
                 shortest_path = shortest_path['shortest_path']
 
                 for index, element in enumerate(shortest_path[:-1]):
                     display_me.append((element[0], element[1], shortest_path[index+1][0], shortest_path[index+1][1]))
-                # print('Path to display: ', display_me)
+                # print('Path to display: ', display_me)"""
 
             temp_dict = {'aircraft_position': [50, 50],
                          'uplift_position': list_of_detected_uplifts,
-                         'navigation_line': display_me,
                          'vec_field_data': coordinates_for_plot}
             send_client(destination_port=1501, input_dict=temp_dict, logging=False)
 
@@ -70,12 +69,12 @@ def run_data_processing_system():
     dps_simulator.daemon = True
     dps_simulator.start()
 
-    # listens for calculated shortest path
+    """# listens for calculated shortest path
     listener_path = threading.Thread(target=receive_server, args=(1508, path_receiving_queue, False))
     listener_path.daemon = True
-    listener_path.start()
+    listener_path.start()"""
 
     # join the threads, maybe needed, maybe not
     listener_weather.join()
-    listener_path.join()
+    #listener_path.join()
     dps_simulator.join()

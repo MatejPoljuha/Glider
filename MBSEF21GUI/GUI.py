@@ -14,8 +14,9 @@ from MBSEF21weather.weather_streamer import run_weather_streamer
 from MBSEF21DPS.data_processing_system import run_data_processing_system
 from MBSEF21pathplanning.path_planning import run_path_planning
 
-flight_mode = "Longest Flight"
+flight_mode = "Fastest Flight"
 app_closed=False
+navigation_line = []
 
 # this is the function called when the button is clicked
 def ModeOne():
@@ -118,7 +119,7 @@ navigation_line=[]
 vec_field_data=([],[],[],[])
 def callback(event):
     global destination_position, aircraft_position,destinationSET
-    print ("clicked at", event.x, event.y)
+    # print ("clicked at", event.x, event.y)
     destination_position = [event.x,event.y]
 
     
@@ -136,25 +137,33 @@ def refreshCanvas():
     global image_on_canvas
     global picture_file
     global data_queue_GUI
+    global navigation_line
    
-    global destination_position, aircraft_position,destinationSET,uplift_position,navigation_line,vec_field_data
+    global destination_position, aircraft_position, destinationSET, uplift_position, navigation_line, vec_field_data
   
     #aircraft_position = [300 ,100]
     
-    rec=None
+    rec = None
     while not data_queue_GUI.empty():
         rec = data_queue_GUI.get()
         aircraft_position = rec['aircraft_position']
         uplift_position = rec['uplift_position']
-        navigation_line = rec['navigation_line']
         vec_field_data = rec['vec_field_data']
-   
-    imgA = make_overlay(destination_position, aircraft_position,uplift_position,navigation_line,vec_field_data)
+
+    path_rec = None
+    while not path_queue.empty():
+        path_rec = path_queue.get()
+        navigation_line = path_rec['shortest_path']
+        path_display_form = []
+        for index, element in enumerate(navigation_line[:-1]):
+            path_display_form.append((element[0], element[1], navigation_line[index + 1][0], navigation_line[index + 1][1]))
+        navigation_line = path_display_form
+
+    imgA = make_overlay(destination_position, aircraft_position, uplift_position, navigation_line, vec_field_data)
     
     picture_file = ImageTk.PhotoImage(imgA)
 
-    
-    MapCanvas.itemconfig(image_on_canvas, image = picture_file)
+    MapCanvas.itemconfig(image_on_canvas, image=picture_file)
     
     root.after(50, refreshCanvas)
     
@@ -176,13 +185,17 @@ x.start()
 '''
 
 data_queue_GUI = queue.Queue()
+path_queue = queue.Queue()
 
 y = threading.Thread(target=receive_server, args=(1501, data_queue_GUI, False))
 y.daemon = True
 y.start()
 
+x = threading.Thread(target=receive_server, args=(1508, path_queue, False))
+x.daemon = True
+x.start()
 
-serve_sim_queue = queue.Queue()
+# serve_sim_queue = queue.Queue()
 ### SIMULATED DPS (CENTRAL COMPUTER)
 #y = threading.Thread(target=receive_server, args=(1500, serve_sim_queue, True))
 #y.daemon = True
@@ -195,7 +208,7 @@ serve_sim_queue = queue.Queue()
 
 ########
          
-
+# threads that start data processing, weather and path planning modules
 dps_thread = threading.Thread(target=run_data_processing_system, args=())
 dps_thread.daemon = True
 dps_thread.start()

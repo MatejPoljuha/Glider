@@ -18,6 +18,8 @@ def run_path_planning():
         start_alt = 0
         dest_alt = 0
 
+        node_raw_data = None
+
         # time in seconds spent at a node, move this out, should be in some sort of simulation module
         time_spent_at_node = 10
 
@@ -25,10 +27,10 @@ def run_path_planning():
         glide_ratio = 50
 
         while True:
-            while incoming_dps_data_queue.empty():
-                sleep(0.2)
+            weather_update = False
+            destination_update = False
 
-            while not incoming_dps_data_queue.empty():
+            if not incoming_dps_data_queue.empty():
                 received_dps_data = incoming_dps_data_queue.get()
 
                 """node_indexes, node_coordinates, node_uplift_data, aircraft_position = [], [], [], []"""
@@ -38,25 +40,33 @@ def run_path_planning():
 
                 # raw node data as received from DPS
                 node_raw_data = received_dps_data['uplift_position']
+                weather_update = True
 
-                # received_dps_data.pop('aircraft_position')
+            if not incoming_gui_data_queue.empty():
+                received_gui_data = incoming_gui_data_queue.get()
+                destination_position = received_gui_data['destination']
 
-                if not incoming_gui_data_queue.empty():
-                    received_gui_data = incoming_gui_data_queue.get()
-                    destination_position = received_gui_data['destination']
-                    # altitudes in km
-                    start_alt = float(received_gui_data['start_altitude'])
-                    dest_alt = float(received_gui_data['dest_altitude'])
+                start_alt = int(received_gui_data['start_altitude'])
+                dest_alt = int(received_gui_data['dest_altitude'])
+                destination_update = True
 
-                # hack, just to stop it from running until it has a destination
-                if starting_position != destination_position:
-                    calculate_plan(node_raw_data,
-                                   starting_position,
-                                   destination_position,
-                                   start_alt,
-                                   dest_alt,
-                                   glide_ratio,
-                                   time_spent_at_node)
+            # hack, to stop it from running until it has a destination
+            if starting_position != destination_position and (weather_update or destination_update):
+                if weather_update:
+                    print("WEATHER UPDATED:")
+                elif destination_update:
+                    print("DESTINATION UPDATED:")
+                calculate_plan(node_raw_data,
+                               starting_position,
+                               destination_position,
+                               start_alt,
+                               dest_alt,
+                               glide_ratio,
+                               time_spent_at_node)
+
+            if not weather_update and not destination_update:
+                # data will not be updated faster than this so we save some performance with this, queues preserve data that arrives in this window
+                sleep(0.2)
 
     def calculate_plan(node_data, starting_position, destination_position, start_alt, dest_alt, glide_ratio, time_spent_at_node):
         """print('DIJKSTRA INPUT: ')
@@ -70,7 +80,6 @@ def run_path_planning():
 
         # band-aid fix, just to remove errors at the start while we have no destination set
         if destination_position != [0, 0]:
-            print('BEGINS PATHFINDING')
             try:
                 potential_paths = nx.shortest_simple_paths(graph, 'start', 'dest', weight='weight')
 
@@ -95,13 +104,8 @@ def run_path_planning():
         for index, node in enumerate(node_list):
             node_list_transformed[str(index)] = {'coordinates': [node['x_pos'], node['y_pos']], 'uplift': node['rel_strength']}
 
-        # creates graph nodes
-        # graph.add_nodes_from(node_list_transformed)
         graph = nx.complete_graph(node_list_transformed, create_using=nx.Graph)
         nx.set_node_attributes(graph, node_list_transformed)
-
-        # creates graph edges
-        # edges = combinations(node_list_transformed, 2)
 
         # adds weights to edges (euclidean distance based on coordinates)
         weighted_edges = []
@@ -117,22 +121,23 @@ def run_path_planning():
             weighted_edges.append(edge)
         graph.add_weighted_edges_from(weighted_edges)
 
-        # remove nodes that represent nodes that we cannot reach from the start position
-        # due to low altitude/large distance
-
         kill_unreachable_edges(graph, starting_alt, glide_ratio)
 
         return graph
 
     def kill_unreachable_edges(graph, starting_altitude, glide_ratio):
+        """
+        remove nodes that represent nodes that we cannot reach from the start position
+        due to low altitude/large distance
+        """
         edges_to_kill = []
 
         for edge in graph.edges('start', data="weight"):
             if edge[2] // glide_ratio >= starting_altitude:
                 edges_to_kill.append((edge[0], edge[1]))
-        #print(graph.edges('start'))
+        # print(graph.edges('start'))
         graph.remove_edges_from(edges_to_kill)
-        #print('surviving edges: ', graph.edges('start'))
+        # print('surviving edges: ', graph.edges('start'))
 
     def check_path_validity(path, graph, start_alt, dist_alt, glide_ratio, time_spent_at_node):
         alt_achieved = start_alt
