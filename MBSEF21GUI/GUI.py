@@ -51,6 +51,8 @@ def RunNavigation():
     message['destination'] = destination_position
     message['dest_altitude'] = tInput1.get()
     message['start_altitude'] = tInput2.get()
+    message['xy_position'] = [int(tInput0.get().split(',')[0]),int(tInput0.get().split(',')[1])]
+    print(message['xy_position'])
     send_client(1500, message, logging=False)
     #print('Run navigation')
     
@@ -81,7 +83,11 @@ Label(root, text="click on map to set destination", bg='#F0F8FF', font=('arial',
 
 # This is the section of code which creates a button
 # Button(root, text='Fastest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeTwo).place(x=800, y=150)
+my_label  = Label(root, text="position (x,y)", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label.place(x=800, y=200)
 
+tInput0=Entry(root, textvariable=StringVar(root, value='100,250'))
+tInput0.place(x=800, y=250)
 
 # This is the section of code which creates the a label
 """my_label  = Label(root, text=flight_mode, bg='#F0F8FF', font=('arial', 12, 'normal'))
@@ -91,15 +97,18 @@ my_label.place(x=800, y=200)"""
 my_label  = Label(root, text="destination alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
 my_label.place(x=800, y=300)
 
-tInput1=Entry(root)
+tInput1=Entry(root, textvariable=StringVar(root, value='20'))
 tInput1.place(x=800, y=350)
 
 
 my_label  = Label(root, text="start alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
 my_label.place(x=800, y=400)
 
-tInput2=Entry(root)
+tInput2=Entry(root, textvariable=StringVar(root, value='700'))
 tInput2.place(x=800, y=450)
+
+
+
 
 #Button(root, text='Set Destination', bg='#F0F8FF', font=('arial', 12, 'normal'), command=SetDestination).place(x=850, y=350)
 Button(root, text='Run Navigation', bg='#F0F8FF', font=('arial', 12, 'normal'), command=RunNavigation).place(x=800, y=500)
