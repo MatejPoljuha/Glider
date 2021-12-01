@@ -244,7 +244,8 @@ def interraction_field_to_obstacle(vec_field_data):
                 angle_dif = 180 - angle_dif
         segment_relation = angle_dif / 90 * wind_strength
 
-        output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength': segment_relation}  # wind speed are real numbers
+        if segment_relation > 0.5:
+            output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength': segment_relation}  # wind speed are real numbers
 
         # x_pos and y_pos need to be real gps coordinates
         # rel_strength needs to be how many meters the glider rises (altitude) in this node
@@ -252,7 +253,7 @@ def interraction_field_to_obstacle(vec_field_data):
         # send the node data to Bartek and to Matej separately
         # for the GUI to display proper colours for uplift strength in nodes, rel_strength should be scaled down from 0 to 1
         
-        result_list.append(output_dict)
+            result_list.append(output_dict)
     strengthlist = []
     for a in result_list:
         strength = a['rel_strength']
