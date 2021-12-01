@@ -1,17 +1,16 @@
 import queue
 import threading
-from itertools import combinations
+import logging
 from math import dist
 
 import networkx as nx
 from matplotlib import pyplot as plt
-
+from datetime import datetime
 from communication import send_client, receive_server
 from time import sleep, time
 
 
 def run_path_planning():
-    # --------------------------------------------------------------------------------------------------------------
     def plan_path():
         starting_position = [0, 0]
         destination_position = [0, 0]
@@ -25,6 +24,18 @@ def run_path_planning():
 
         # glide ratio * scaling factor for 100 m
         glide_ratio = 50
+
+        # default log values
+        run_results = ''
+
+        run_counter = 0
+        run_reason = ''
+        algorithm_run_time = 0
+        length_of_path = 0
+        altitude_changes = []
+
+        # TEMPORARY, NEEDS TO BE ENTERED BY USER
+        weather_refresh_interval = 4
 
         while True:
             weather_update = False
@@ -51,30 +62,48 @@ def run_path_planning():
                 destination_update = True
 
             # hack, to stop it from running until it has a destination
-            if starting_position != destination_position and (weather_update or destination_update):
-                if weather_update:
-                    print("WEATHER UPDATED:")
-                elif destination_update:
-                    print("DESTINATION UPDATED:")
-                calculate_plan(node_raw_data,
-                               starting_position,
-                               destination_position,
-                               start_alt,
-                               dest_alt,
-                               glide_ratio,
-                               time_spent_at_node)
+            if destination_position != [0, 0] and (weather_update or destination_update):
+                run_counter += 1
+
+                if weather_update or destination_update:
+                    if weather_update and destination_update:
+                        run_reason = 'weather + new destination'
+                    elif weather_update:
+                        run_reason = 'weather'
+                    elif destination_update:
+                        run_reason = 'new destination'
+
+                shortest_path, shortest_path_length = calculate_plan(node_raw_data,
+                                                                     starting_position,
+                                                                     destination_position,
+                                                                     start_alt,
+                                                                     dest_alt,
+                                                                     glide_ratio,
+                                                                     time_spent_at_node)
+                # , altitude_changes
+
+                run_results = '{} {} {} {} {} {} {} {} {} {}'.format(
+                    run_counter,
+                    run_reason,
+                    datetime.now().strftime("%H:%M:%S"),
+                    algorithm_run_time,
+                    str(starting_position) + ', ' + str(start_alt),
+                    str(destination_position) + ', ' + str(dest_alt),
+                    shortest_path,
+                    shortest_path_length,
+                    time_spent_at_node,
+                    weather_refresh_interval
+                )
+                # altitude_changes,
+                logging.info(run_results)
 
             if not weather_update and not destination_update:
-                # data will not be updated faster than this so we save some performance with this, queues preserve data that arrives in this window
+                # data will not be updated faster than this so we save some performance with this, queues preserve data that arrives during this window
                 sleep(0.2)
 
-    def calculate_plan(node_data, starting_position, destination_position, start_alt, dest_alt, glide_ratio, time_spent_at_node):
-        """print('DIJKSTRA INPUT: ')
-        print('\nNode data: ', node_data)
-        print('\nStarting position: ', starting_position)
-        print('\nDestination position: ', destination_position)
-        """
-
+    def calculate_plan(node_data, starting_position, destination_position, start_alt, dest_alt, glide_ratio,
+                       time_spent_at_node):
+        # creates graph structure
         graph = create_graph(node_data, starting_position, destination_position, glide_ratio, start_alt)
         # visualize_graph(graph, graph.nodes(data='coordinates'))
 
@@ -85,24 +114,35 @@ def run_path_planning():
 
                 t3 = time()
                 for potential_path in potential_paths:
-                    # print(potential_path)
                     if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
                         t4 = time()
                         print('Yen: ', potential_path, 'time: ', t4 - t3)
                         display_path = []
+                        path_length = 0
+                        # altitude_changes = [start_alt]
                         for node in potential_path:
-                            display_path.append(graph.nodes[node]['coordinates'])
+                            node_coordinates = graph.nodes[node]['coordinates']
+                            display_path.append(node_coordinates)
+                            # altitude_changes.append(start_alt + graph.nodes[node]['uplift'], )
+
+                        for index, node in enumerate(potential_path[1:]):
+                            path_length += graph.get_edge_data(potential_path[index], node)['weight']
+                        # altitude_changes.append()
+
                         send_client(1508, input_dict={'shortest_path': display_path}, logging=False)
-                        break
+
+                        return potential_path, path_length
+                    #   , altitude_changes
             except nx.NetworkXNoPath:
-                print('No possible path found!')
+                return [], 0
 
     def create_graph(node_list, starting_position, destination_position, glide_ratio, starting_alt):
         # band-aid fix - not optimal, transforms received node data into a better format
         node_list_transformed = {'start': {'coordinates': starting_position},
                                  'dest': {'coordinates': destination_position}}
         for index, node in enumerate(node_list):
-            node_list_transformed[str(index)] = {'coordinates': [node['x_pos'], node['y_pos']], 'uplift': node['rel_strength']}
+            node_list_transformed[str(index)] = {'coordinates': [node['x_pos'], node['y_pos']],
+                                                 'uplift': node['rel_strength']}
 
         graph = nx.complete_graph(node_list_transformed, create_using=nx.Graph)
         nx.set_node_attributes(graph, node_list_transformed)
@@ -163,16 +203,6 @@ def run_path_planning():
         else:
             return False
 
-    def reconstruct_path(came_from, start, goal):
-        current = goal
-        path = []
-        while current != start:
-            path.append(current)
-            current = came_from[current]
-        path.append(start)
-        path.reverse()
-        return path
-
     def visualize_graph(g, node_positions):
         plt.figure(figsize=(5, 5), dpi=200, frameon=False)
         plt.axis('equal')
@@ -191,6 +221,13 @@ def run_path_planning():
         )
         plt.show()
 
+    logging.basicConfig(filename="results.log", filemode='w', level=logging.INFO, format='%(message)s')
+
+    # creates log column names
+    logging.info(
+        'algorithm_run_ID run_reason timestamp algorithm_run_time start destination shortest_path length_of_path time_spent_at_node weather_refresh_interval')
+    # altitude_changes
+
     incoming_dps_data_queue = queue.Queue()
     incoming_gui_data_queue = queue.Queue()
 
@@ -205,13 +242,3 @@ def run_path_planning():
     gui_server_thread.start()
 
     plan_path()
-
-    """# starts client thread that simulates the dps sending node data and current aircraft position
-    dps_client_thread = threading.Thread(target=simulate_dps_input, args=())
-    dps_client_thread.daemon = True
-    dps_client_thread.start()
-
-    # starts client thread that simulates input by the user through the GUI, navigation mode and destination position
-    GUI_client_thread = threading.Thread(target=simulate_gui_input, args=())
-    GUI_client_thread.daemon = True
-    GUI_client_thread.start()"""

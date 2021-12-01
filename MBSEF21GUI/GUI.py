@@ -52,9 +52,9 @@ def RunNavigation():
     message['dest_altitude'] = tInput1.get()
     message['start_altitude'] = tInput2.get()
     message['xy_position'] = [int(tInput0.get().split(',')[0]),int(tInput0.get().split(',')[1])]
-    print(message['xy_position'])
+    # print(message['xy_position'])
     send_client(1500, message, logging=False)
-    #print('Run navigation')
+    # print('Run navigation')
     
     
 root = Tk()
