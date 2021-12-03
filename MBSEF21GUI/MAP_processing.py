@@ -228,7 +228,7 @@ def interraction_field_to_obstacle(vec_field_data):
         wind = vect_field[x_found_index][y_found_index]
         wind_angle = wind[0]
         wind_strength = wind[1]
-        if 0 < wind_angle <= 90:
+        if 0 <= wind_angle <= 90:
             wind_angle = wind_angle
         elif 90 < wind_angle <= 180:
             wind_angle = -(180 - wind_angle)
@@ -247,8 +247,7 @@ def interraction_field_to_obstacle(vec_field_data):
             angle_dif = segment_angle - wind_angle
             if angle_dif > 90:
                 angle_dif = 180 - angle_dif
-        segment_relation = angle_dif / 90 * wind_strength
-
+        segment_relation = round(angle_dif / 90 * wind_strength, 3)
         if segment_relation > 0.5:
             output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength': segment_relation}  # wind speed are real numbers
 
