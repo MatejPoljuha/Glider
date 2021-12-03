@@ -1,7 +1,7 @@
 from PIL import Image,ImageDraw
 
 from MBSEF21GUI.MAP_processing import *
-
+from MBSEF21GUI.experiment_flags import experiment2_flag
 
 
 def make_overlay(destination_position, aircraft_position,uplift,navigation_line,vec_field_data):
@@ -16,7 +16,11 @@ def make_overlay(destination_position, aircraft_position,uplift,navigation_line,
     
     draw = ImageDraw.Draw(background) 
     
-    line_segments = process_image_and_extract_line_segments(fil_dir+'/imag.svg')
+    global experiment2_flag
+    if experiment2_flag:
+        line_segments = process_image_and_extract_line_segments(fil_dir+'/imagFORGED.svg')
+    else:
+        line_segments = process_image_and_extract_line_segments(fil_dir+'/imag.svg')
 
     for element in line_segments:    
         draw.line(element, fill=(0, 255, 0), width=5)

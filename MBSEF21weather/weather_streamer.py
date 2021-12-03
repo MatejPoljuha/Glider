@@ -8,14 +8,25 @@ from communication import receive_server, send_client
 import os
 from time import sleep
 import threading
+from MBSEF21GUI.experiment_flags import experiment2_flag
 
 
 def run_weather_streamer():
     fil_dir = os.path.dirname(os.path.abspath(__file__))
 
     json_file_list = []
-    for file in glob.glob("{}/*.json".format(fil_dir)):
-        json_file_list.append(file)
+    
+    
+    global experiment2_flag
+    if experiment2_flag:    
+        for file in glob.glob("{}/weatherFORGED.json".format(fil_dir)):
+            json_file_list.append(file)
+    else:    
+        for file in glob.glob("{}/*.json".format(fil_dir)):
+            json_file_list.append(file)
+        
+        
+        
     while(1):
         for fil_name in json_file_list:
 

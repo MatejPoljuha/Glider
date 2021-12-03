@@ -18,6 +18,10 @@ from MBSEF21pathplanning.path_planning import run_path_planning
 app_closed=False
 navigation_line = []
 
+
+
+
+
 # this is the function called when the button is clicked
 """def ModeOne():
     global flight_mode,my_label

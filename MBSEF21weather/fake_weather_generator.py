@@ -9,7 +9,7 @@ with open('weatherSRC.json') as f:
 for d in data:
     #print(d['data'])
     d['data']['speed'] = 1
-    d['data']['deg'] = 45
+    d['data']['deg'] = 0
 
 for d in data:
     print(d)

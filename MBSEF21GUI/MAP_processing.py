@@ -8,6 +8,7 @@ from math import sqrt, sin, cos
 from numpy import angle
 import json
 import os
+from MBSEF21GUI.experiment_flags import experiment2_flag
 
 
 
@@ -189,7 +190,11 @@ def interraction_field_to_obstacle(vec_field_data):
     
     fil_dir = os.path.dirname(os.path.abspath(__file__))
     
-    (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imag.svg")
+    global experiment2_flag
+    if experiment2_flag:
+        (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imagFORGED.svg")
+    else:
+        (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imag.svg")
     
     result_list=[]
     
