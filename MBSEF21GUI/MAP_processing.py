@@ -248,7 +248,7 @@ def interraction_field_to_obstacle(vec_field_data):
             if angle_dif > 90:
                 angle_dif = 180 - angle_dif
         segment_relation = round(angle_dif / 90 * wind_strength, 3)
-        if segment_relation > 0.5:
+        if segment_relation > 0.4:
             output_dict= {'x_pos': int(value_of_point[0]),'y_pos':int(value_of_point[1]),'rel_strength': segment_relation}  # wind speed are real numbers
 
         # x_pos and y_pos need to be real gps coordinates
