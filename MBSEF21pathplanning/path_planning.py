@@ -222,8 +222,8 @@ def run_path_planning():
     length_of_path = 0
     altitude_changes = []
 
-    # TEMPORARY, NEEDS TO BE ENTERED BY USER
-    weather_refresh_interval = 5
+    weather_refresh_interval = 1
+    last_weather_update = time()
 
     while True:
         weather_update = False
@@ -248,6 +248,7 @@ def run_path_planning():
 
             start_alt = int(received_gui_data['start_altitude'])
             dest_alt = int(received_gui_data['dest_altitude'])
+            weather_refresh_interval = received_gui_data['weather_refresh_interval']
             destination_update = True
 
         # hack, to stop it from running until it has a destination

@@ -11,7 +11,7 @@ import threading
 from MBSEF21GUI.experiment_flags import experiment2_flag
 
 
-def run_weather_streamer():
+def run_weather_streamer(weather_refresh_interval):
     fil_dir = os.path.dirname(os.path.abspath(__file__))
 
     json_file_list = []
@@ -33,4 +33,4 @@ def run_weather_streamer():
                 json_dict = json.loads(read_file.read())
 
             send_client(destination_port=1505, input_dict=json_dict, logging=False)
-            sleep(5)
+            sleep(weather_refresh_interval)

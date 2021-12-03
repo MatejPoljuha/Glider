@@ -27,6 +27,9 @@ if len(sys.argv) >=2:
     if text == "experiment_2":
         experiment2_flag = True
 
+# THIS NEEDS TO BE A LAUNCH PARAMETER
+weather_refresh_interval = 5
+
 
 # this is the function called when the button is clicked
 """def ModeOne():
@@ -62,6 +65,7 @@ def RunNavigation():
     message['dest_altitude'] = tInput1.get()
     message['start_altitude'] = tInput2.get()
     message['xy_position'] = [int(tInput0.get().split(',')[0]),int(tInput0.get().split(',')[1])]
+    message['weather_refresh_interval'] = weather_refresh_interval
     # print(message['xy_position'])
     send_client(1500, message, logging=False)
     # print('Run navigation')
@@ -232,7 +236,7 @@ dps_thread = threading.Thread(target=run_data_processing_system, args=())
 dps_thread.daemon = True
 dps_thread.start()
 
-weather_streamer_thread = threading.Thread(target=run_weather_streamer, args=())
+weather_streamer_thread = threading.Thread(target=run_weather_streamer, args=(weather_refresh_interval,))
 weather_streamer_thread.daemon = True
 weather_streamer_thread.start()
 
