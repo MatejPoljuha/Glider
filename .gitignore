@@ -7,3 +7,4 @@
 .pyc
 __pycache__/
 MBSEF21GUI/__pycache__/
+MBSEF21GUI/results.log

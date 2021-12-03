@@ -1,9 +1,8 @@
 import queue
 import threading
 import logging
-from math import dist
-
 import networkx as nx
+from math import dist
 from matplotlib import pyplot as plt
 from datetime import datetime
 from communication import send_client, receive_server
@@ -11,38 +10,44 @@ from time import sleep, time
 
 
 def run_path_planning():
-    def calculate_plan(graph, destination_position, start_alt, dest_alt, glide_ratio,
-                       time_spent_at_node):
-        # band-aid fix, just to remove errors at the start while we have no destination set
-        if destination_position != [0, 0]:
-            try:
-                potential_paths = nx.shortest_simple_paths(graph, 'start', 'dest', weight='weight')
+    def calculate_plan(graph, destination_position, start_alt, dest_alt, glide_ratio, time_spent_at_node, last_weather_update):
+        timed_out = False
+        # starts timing execution of algorithm
+        algorithm_start_time = time()
 
-                # starts timing execution of algorithm
-                algorithm_start_time = time()
+        try:
+            potential_paths = nx.shortest_simple_paths(graph, 'start', 'dest', weight='weight')
+            for potential_path in potential_paths:
+                if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
+                    algorithm_taken_time = time() - algorithm_start_time
+                    # if the algorithm takes more than a reasonable amount of time to find a solution, stop it and say there is no path
+                    if algorithm_taken_time > min(weather_refresh_interval/0.66, weather_refresh_interval - float(time() - last_weather_update), 10):
+                        timed_out = True
+                        raise nx.NetworkXNoPath
 
-                for potential_path in potential_paths:
-                    if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
-                        algorithm_taken_time = time() - algorithm_start_time
-                        print('Yen: ', potential_path, 'time: ', algorithm_taken_time)
+                    # converts path into display format and sends it to GUI
+                    send_path_to_gui(potential_path)
 
-                        # converts path into display format and sends it to GUI
-                        send_path_to_gui(potential_path)
+                    path_length, altitudes = get_shortest_path_info(potential_path, start_alt)
 
-                        return potential_path, algorithm_taken_time
-            except nx.NetworkXNoPath:
-                return [], 0
+                    return potential_path, algorithm_taken_time, path_length, altitudes
+        except nx.NetworkXNoPath:
+            algorithm_taken_time = time() - algorithm_start_time
+            if timed_out:
+                return 'Timed out', algorithm_taken_time, 0, '-'
+            else:
+                return 'No path found', algorithm_taken_time, 0, '-'
 
-    def create_graph(node_list, starting_position, destination_position, glide_ratio, starting_alt):
-        # band-aid fix - not optimal, transforms received node data into a better format
+    def create_graph(node_list, starting_position, destination_position, glide_ratio, starting_alt, time_spent_at_node):
         node_list_transformed = {'start': {'coordinates': starting_position},
                                  'dest': {'coordinates': destination_position}}
+
         for index, node in enumerate(node_list):
             coordinates = [node['x_pos'], node['y_pos']]
             start_coordinates = node_list_transformed['start']['coordinates']
             dest_coordinates = node_list_transformed['dest']['coordinates']
 
-            # if start/destination are uplift zones, makes them not be
+            # if start/destination are uplift zones, skips them, otherwise reformat the input data into this dict form
             if coordinates != start_coordinates and coordinates != dest_coordinates:
                 node_list_transformed[str(index + 1)] = {'coordinates': coordinates,
                                                          'uplift': node['rel_strength']}
@@ -52,11 +57,13 @@ def run_path_planning():
 
         # adds weights to edges (euclidean distance based on coordinates)
         weighted_edges = []
+
         for edge in graph.edges:
             edge = list(edge)
-            # real dimensions of map are 64 km x 64 km but it is 512 x 512 pixels
-            edge_node_1 = [coordinate for coordinate in graph.nodes(data='coordinates')[edge[0]]]
-            edge_node_2 = [coordinate for coordinate in graph.nodes(data='coordinates')[edge[1]]]
+            # real dimensions of map are 64 km x 64 km but it is 512 x 512 pixels so a scaling factor is needed
+            edge_node_1 = [coordinate * 125 for coordinate in graph.nodes(data='coordinates')[edge[0]]]
+            edge_node_2 = [coordinate * 125 for coordinate in graph.nodes(data='coordinates')[edge[1]]]
+
             # edge_weight is node distance in meters
             edge_weight = dist(edge_node_1, edge_node_2)
             edge.append(int(edge_weight))
@@ -69,18 +76,33 @@ def run_path_planning():
 
     def kill_unreachable_edges(graph, starting_altitude, glide_ratio):
         """
-        remove nodes that the glider cannot reach from the start position
-        due to low altitude/large distance
+        removes edges that the glider cannot reach from the start position
+        due to low altitude/large distance and edges that are impossible to reach even if we visit every single uplift point
         """
         edges_to_kill = []
 
+        # finds edges that are unreachable from the start
         for edge in graph.edges('start', data="weight"):
             if edge[2] // glide_ratio >= starting_altitude:
+                edges_to_kill.append((edge[0], edge[1]))
+
+        # finds edges that are unreachable even with maximum uplift
+        max_achieved_alt = starting_altitude
+        for node in graph.nodes(data=True):
+            if node[0] != 'start' and node[0] != 'dest':
+                # 4000 meters it the maximum safe altitude for gliding
+                max_achieved_alt = min(4000, max_achieved_alt + node[1]['uplift']*time_spent_at_node)
+
+        for edge in graph.edges(data="weight"):
+            if edge[2] // glide_ratio > max_achieved_alt:
                 edges_to_kill.append((edge[0], edge[1]))
 
         graph.remove_edges_from(edges_to_kill)
 
     def check_path_validity(path, graph, start_alt, dist_alt, glide_ratio, time_spent_at_node):
+        """
+        checks if a path is possible within the altitude constraints
+        """
         alt_achieved = start_alt
 
         for index, node in enumerate(path[1:]):
@@ -95,7 +117,8 @@ def run_path_planning():
             if node != 'dest':
                 uplift_gain = graph.nodes[node]['uplift']
                 uplift_gain *= time_spent_at_node
-                alt_achieved += -travel_loss + uplift_gain
+                # 4000 meters it the maximum safe altitude for gliding so if the path necessitates it, we assume the pilot would stop themselves before exceeding it
+                alt_achieved = min(4000, alt_achieved + uplift_gain - travel_loss)
             elif node == 'dest':
                 alt_achieved += -travel_loss
 
@@ -104,7 +127,10 @@ def run_path_planning():
         else:
             return False
 
-    def get_shortest_path_info(path, starting_altitude, glide_ratio):
+    def get_shortest_path_info(path, starting_altitude):
+        """
+        Goes through the calculated path and retrieves info about it from the graph structure
+        """
         path_length = 0
         altitudes = [starting_altitude]
         current_altitude = starting_altitude
@@ -113,7 +139,7 @@ def run_path_planning():
             node_distance = graph.get_edge_data(path[index], node)['weight']
             path_length += node_distance
             if node != 'dest':
-                current_altitude += graph.nodes[node]['uplift'] - node_distance / glide_ratio
+                current_altitude += graph.nodes[node]['uplift'] * time_spent_at_node - node_distance / glide_ratio
             elif node == 'dest':
                 current_altitude -= node_distance / glide_ratio
             altitudes.append(int(current_altitude))
@@ -121,6 +147,9 @@ def run_path_planning():
         return path_length, altitudes
 
     def send_path_to_gui(potential_path):
+        """
+        Sends the path to GUI in a different format.
+        """
         display_path = []
         for node in potential_path:
             display_path.append(graph.nodes[node]['coordinates'])
@@ -156,7 +185,7 @@ def run_path_planning():
         'length_of_path [m]',
         'time_spent_at_node [s]',
         'weather_refresh_interval [s]')
-    logging.info(column_names + ' | shortest_path' + ' | altitude_changes [m]')
+    logging.info(column_names + ' | shortest_path found' + ' | altitude_changes [m]')
 
     # starts server thread that listens for new node positions and aircraft location (starting point for graph)
     incoming_dps_data_queue = queue.Queue()
@@ -179,7 +208,7 @@ def run_path_planning():
     node_raw_data = None
 
     # time in seconds spent at a node, move this out, should be in some sort of simulation module
-    time_spent_at_node = 10
+    time_spent_at_node = 180
 
     # glide ratio * scaling factor for 100 m
     glide_ratio = 50
@@ -194,7 +223,7 @@ def run_path_planning():
     altitude_changes = []
 
     # TEMPORARY, NEEDS TO BE ENTERED BY USER
-    weather_refresh_interval = 4
+    weather_refresh_interval = 5
 
     while True:
         weather_update = False
@@ -211,6 +240,7 @@ def run_path_planning():
             # raw node data as received from DPS
             node_raw_data = received_dps_data['uplift_position']
             weather_update = True
+            last_weather_update = time()
 
         if not incoming_gui_data_queue.empty():
             received_gui_data = incoming_gui_data_queue.get()
@@ -233,16 +263,20 @@ def run_path_planning():
                     run_reason = 'new destination'
 
             # creates graph structure as networkx complete undirected weighted graph
-            graph = create_graph(node_raw_data, starting_position, destination_position, glide_ratio, start_alt)
+            graph = create_graph(node_raw_data, starting_position, destination_position, glide_ratio, start_alt,
+                                 time_spent_at_node)
 
             # visualize_graph(graph, graph.nodes(data='coordinates'))
 
-            shortest_path, algorithm_run_time = calculate_plan(graph, destination_position, start_alt, dest_alt,
-                                                               glide_ratio, time_spent_at_node)
+            shortest_path, algorithm_run_time, shortest_path_length, altitude_changes = calculate_plan(graph,
+                                                                                                       destination_position,
+                                                                                                       start_alt,
+                                                                                                       dest_alt,
+                                                                                                       glide_ratio,
+                                                                                                       time_spent_at_node,
+                                                                                                       last_weather_update)
 
-            shortest_path_length, altitude_changes = get_shortest_path_info(shortest_path, start_alt, glide_ratio)
-
-            run_results = "{:^17} | {:^27} | {:^11} | {:^24} | {:^27} | {:^33} | {:^20} | {:^24} | {:^30}".format(
+            run_results = " {:^17} | {:^27} | {:^11} | {:^24} | {:^27} | {:^33} | {:^20} | {:^24} | {:^30}".format(
                 run_counter,
                 run_reason,
                 datetime.now().strftime("%H:%M:%S"),

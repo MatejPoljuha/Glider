@@ -13,6 +13,7 @@ from communication import *
 from MBSEF21weather.weather_streamer import run_weather_streamer
 from MBSEF21DPS.data_processing_system import run_data_processing_system
 from MBSEF21pathplanning.path_planning import run_path_planning
+from MBSEF21GUI.experiment_flags import experiment2_flag
 
 # flight_mode = "Fastest Flight"
 app_closed=False
@@ -25,7 +26,6 @@ if len(sys.argv) >=2:
     text = arg[::-1]
     if text == "experiment_2":
         experiment2_flag = True
-
 
 
 # this is the function called when the button is clicked
