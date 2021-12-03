@@ -18,7 +18,13 @@ from MBSEF21pathplanning.path_planning import run_path_planning
 app_closed=False
 navigation_line = []
 
-
+global experiment2_flag
+experiment2_flag = False
+if len(sys.argv) >=2:
+    arg = sys.argv[1]
+    text = arg[::-1]
+    if text == "experiment_2":
+        experiment2_flag = True
 
 
 
