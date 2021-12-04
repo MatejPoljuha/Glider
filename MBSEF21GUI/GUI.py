@@ -13,22 +13,23 @@ from communication import *
 from MBSEF21weather.weather_streamer import run_weather_streamer
 from MBSEF21DPS.data_processing_system import run_data_processing_system
 from MBSEF21pathplanning.path_planning import run_path_planning
-from MBSEF21GUI.experiment_flags import experiment2_flag
 
 # flight_mode = "Fastest Flight"
-app_closed=False
+app_closed = False
 navigation_line = []
 
-global experiment2_flag
-experiment2_flag = False
-if len(sys.argv) >=2:
-    arg = sys.argv[1]
-    text = arg[::-1]
-    if text == "experiment_2":
-        experiment2_flag = True
+global experiment_flag
+experiment_flag = '0'
+# launch parameter that determines the rate in seconds of weather situation(data) changing
+weather_refresh_interval = int(sys.argv[1])
+time_spent_at_node = int(sys.argv[2])
+if len(sys.argv) >= 4:
+    experiment_input_flag = sys.argv[2]
+    if experiment_input_flag[-1] == "2":
+        experiment_flag = '2'
 
-# THIS NEEDS TO BE A LAUNCH PARAMETER
-weather_refresh_interval = 5
+
+
 
 
 # this is the function called when the button is clicked
@@ -52,23 +53,25 @@ def SetDestination():
     print('SetDestination')
 '''
 
+
 # this is a function to get the user input from the text input box
 def getInputBoxValue():
     userInput = tInput.get()
     return userInput
 
+
 def RunNavigation():
     global tInput
-    message = {}
+    try:
+        starting_position = [min(int(tInput0.get().split(',')[0]), 511), min(int(tInput0.get().split(',')[1]), 511)]
+    except ValueError:
+        starting_position = [1, 1]
+    message = {'destination': destination_position,
+               'dest_altitude': tInput1.get(),
+               'start_altitude': tInput2.get(),
+               'starting_position': starting_position}
     # message['flight_mode'] = flight_mode
-    message['destination'] = destination_position
-    message['dest_altitude'] = tInput1.get()
-    message['start_altitude'] = tInput2.get()
-    message['xy_position'] = [int(tInput0.get().split(',')[0]),int(tInput0.get().split(',')[1])]
-    message['weather_refresh_interval'] = weather_refresh_interval
-    # print(message['xy_position'])
     send_client(1500, message, logging=False)
-    # print('Run navigation')
     
     
 root = Tk()
@@ -80,11 +83,12 @@ root.title('Glider Navigation System')
 root.resizable(width=False, height=False)
 
 # First, we create a canvas to put the picture on
-MapCanvas= Canvas(root, height=512, width=512)
+MapCanvas = Canvas(root, height=512, width=512)
+
 # Then, we actually create the image file to use (it has to be a *.gif)
 fil_dir = os.path.dirname(os.path.abspath(__file__))
-#print(fil_dir)
-picture_file = PhotoImage(file = fil_dir+'/map.png')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
+
+picture_file = PhotoImage(file=fil_dir+'/map.png')  # <-- you will have to copy-paste the filepath here, for example 'C:\Desktop\pic.gif'
 # Finally, we create the image on the canvas and then place it onto the main window
 image_on_canvas = MapCanvas.create_image(512, 0, anchor=NE, image=picture_file)
 MapCanvas.place(x=10, y=10)
@@ -97,10 +101,10 @@ Label(root, text="click on map to set destination", bg='#F0F8FF', font=('arial',
 
 # This is the section of code which creates a button
 # Button(root, text='Fastest Flight', bg='#F0F8FF', font=('arial', 12, 'normal'), command=ModeTwo).place(x=800, y=150)
-my_label  = Label(root, text="position (x,y)", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label = Label(root, text="Starting position (1-511,1-511)", bg='#F0F8FF', font=('arial', 12, 'normal'))
 my_label.place(x=800, y=200)
 
-tInput0=Entry(root, textvariable=StringVar(root, value='100,250'))
+tInput0 = Entry(root, textvariable=StringVar(root, value='150,150'))
 tInput0.place(x=800, y=250)
 
 # This is the section of code which creates the a label
@@ -108,17 +112,17 @@ tInput0.place(x=800, y=250)
 my_label.place(x=800, y=200)"""
 
 # This is the section of code which creates a text input box
-my_label  = Label(root, text="destination alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label = Label(root, text="destination alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
 my_label.place(x=800, y=300)
 
-tInput1=Entry(root, textvariable=StringVar(root, value='20'))
+tInput1 = Entry(root, textvariable=StringVar(root, value='20'))
 tInput1.place(x=800, y=350)
 
 
-my_label  = Label(root, text="start alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label = Label(root, text="start alt", bg='#F0F8FF', font=('arial', 12, 'normal'))
 my_label.place(x=800, y=400)
 
-tInput2=Entry(root, textvariable=StringVar(root, value='700'))
+tInput2 = Entry(root, textvariable=StringVar(root, value='700'))
 tInput2.place(x=800, y=450)
 
 
@@ -136,7 +140,7 @@ destination_position=[0,0]
 
 
 
-aircraft_position = [0,0]
+aircraft_position = [50,50]
 uplift_position=[]
 navigation_line=[]
 vec_field_data=([],[],[],[])
@@ -169,7 +173,7 @@ def refreshCanvas():
     rec = None
     while not data_queue_GUI.empty():
         rec = data_queue_GUI.get()
-        aircraft_position = rec['aircraft_position']
+        # aircraft_position = rec['aircraft_position']
         uplift_position = rec['uplift_position']
         vec_field_data = rec['vec_field_data']
 
@@ -182,8 +186,15 @@ def refreshCanvas():
             path_display_form.append((element[0], element[1], navigation_line[index + 1][0], navigation_line[index + 1][1]))
         navigation_line = path_display_form
 
-    imgA = make_overlay(destination_position, aircraft_position, uplift_position, navigation_line, vec_field_data)
-    
+    # needs this try block if something other than a number is put into the input box
+    try:
+        starting_position = [min(int(tInput0.get().split(',')[0]), 511), min(int(tInput0.get().split(',')[1]), 511)]
+    except ValueError:
+        starting_position = [1, 1]
+
+    imgA = make_overlay(destination_position, starting_position, uplift_position, navigation_line, vec_field_data,
+                        experiment_flag)
+
     picture_file = ImageTk.PhotoImage(imgA)
 
     MapCanvas.itemconfig(image_on_canvas, image=picture_file)
@@ -232,15 +243,15 @@ x.start()
 ########
          
 # threads that start data processing, weather and path planning modules
-dps_thread = threading.Thread(target=run_data_processing_system, args=())
+dps_thread = threading.Thread(target=run_data_processing_system, args=(experiment_flag, ))
 dps_thread.daemon = True
 dps_thread.start()
 
-weather_streamer_thread = threading.Thread(target=run_weather_streamer, args=(weather_refresh_interval,))
+weather_streamer_thread = threading.Thread(target=run_weather_streamer, args=(weather_refresh_interval, experiment_flag,))
 weather_streamer_thread.daemon = True
 weather_streamer_thread.start()
 
-path_planning_thread = threading.Thread(target=run_path_planning, args=())
+path_planning_thread = threading.Thread(target=run_path_planning, args=(weather_refresh_interval, time_spent_at_node))
 path_planning_thread.daemon = True
 path_planning_thread.start()
 

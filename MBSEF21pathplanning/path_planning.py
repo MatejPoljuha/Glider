@@ -9,8 +9,8 @@ from communication import send_client, receive_server
 from time import sleep, time
 
 
-def run_path_planning():
-    def calculate_plan(graph, destination_position, start_alt, dest_alt, glide_ratio, time_spent_at_node, last_weather_update):
+def run_path_planning(weather_refresh_interval, time_spent_at_node):
+    def calculate_plan(graph, start_alt, dest_alt, glide_ratio, time_spent_at_node, last_weather_update):
         timed_out = False
         # starts timing execution of algorithm
         algorithm_start_time = time()
@@ -31,14 +31,14 @@ def run_path_planning():
                     path_length, altitudes = get_shortest_path_info(potential_path, start_alt)
 
                     return potential_path, algorithm_taken_time, path_length, altitudes
-        except nx.NetworkXNoPath:
+        except nx.NetworkXNoPath or nx.NetworkXError:
             algorithm_taken_time = time() - algorithm_start_time
             if timed_out:
                 return 'Timed out', algorithm_taken_time, 0, '-'
             else:
                 return 'No path found', algorithm_taken_time, 0, '-'
 
-    def create_graph(node_list, starting_position, destination_position, glide_ratio, starting_alt, time_spent_at_node):
+    def create_graph(node_list, starting_position, destination_position, glide_ratio, starting_alt):
         node_list_transformed = {'start': {'coordinates': starting_position},
                                  'dest': {'coordinates': destination_position}}
 
@@ -208,7 +208,7 @@ def run_path_planning():
     node_raw_data = None
 
     # time in seconds spent at a node, move this out, should be in some sort of simulation module
-    time_spent_at_node = 180
+    # time_spent_at_node = 180
 
     # glide ratio * scaling factor for 100 m
     glide_ratio = 50
@@ -222,7 +222,7 @@ def run_path_planning():
     length_of_path = 0
     altitude_changes = []
 
-    weather_refresh_interval = 1
+    # weather_refresh_interval = 1
     last_weather_update = time()
 
     while True:
@@ -235,7 +235,7 @@ def run_path_planning():
             """node_indexes, node_coordinates, node_uplift_data, aircraft_position = [], [], [], []"""
 
             # starting position, [x,y]
-            starting_position = received_dps_data['aircraft_position']
+            # starting_position = received_dps_data['aircraft_position']
 
             # raw node data as received from DPS
             node_raw_data = received_dps_data['uplift_position']
@@ -248,10 +248,11 @@ def run_path_planning():
 
             start_alt = int(received_gui_data['start_altitude'])
             dest_alt = int(received_gui_data['dest_altitude'])
-            weather_refresh_interval = received_gui_data['weather_refresh_interval']
+            # received from GUI for purposes of simulation but in reality would be from DPS
+            starting_position = received_gui_data['starting_position']
+            # weather_refresh_interval = received_gui_data['weather_refresh_interval']
             destination_update = True
 
-        # hack, to stop it from running until it has a destination
         if destination_position != [0, 0] and (weather_update or destination_update):
             run_counter += 1
 
@@ -264,13 +265,11 @@ def run_path_planning():
                     run_reason = 'new destination'
 
             # creates graph structure as networkx complete undirected weighted graph
-            graph = create_graph(node_raw_data, starting_position, destination_position, glide_ratio, start_alt,
-                                 time_spent_at_node)
+            graph = create_graph(node_raw_data, starting_position, destination_position, glide_ratio, start_alt)
 
             # visualize_graph(graph, graph.nodes(data='coordinates'))
 
             shortest_path, algorithm_run_time, shortest_path_length, altitude_changes = calculate_plan(graph,
-                                                                                                       destination_position,
                                                                                                        start_alt,
                                                                                                        dest_alt,
                                                                                                        glide_ratio,

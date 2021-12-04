@@ -1,12 +1,12 @@
 import queue
 from communication import *
-from MBSEF21GUI.MAP_processing import interraction_field_to_obstacle,generate_test_vector_field
+from MBSEF21GUI.MAP_processing import interraction_field_to_obstacle, generate_test_vector_field
 import threading
 import random
 from time import sleep
 
 
-def run_data_processing_system():
+def run_data_processing_system(experiment_flag):
     def simulate_dps_messages(dps_queue: queue.Queue):
         """
         Simulates the glider changing position every 3 seconds, placeholder function - to be replaced when DPS is implemented.
@@ -27,7 +27,7 @@ def run_data_processing_system():
 
             vec_field_data = generate_test_vector_field(rec)
             vect_field, coordinates_for_plot, central_points_of_boxes, left_edge_points_of_boxes = vec_field_data
-            list_of_detected_uplifts = interraction_field_to_obstacle(vec_field_data)
+            list_of_detected_uplifts = interraction_field_to_obstacle(vec_field_data, experiment_flag)
             # print(list_of_detected_uplifts)
             # not sure if we can have 2 sleeps like this, could cause problems
             """while dps_queue.empty():
@@ -46,12 +46,12 @@ def run_data_processing_system():
                     display_me.append((element[0], element[1], shortest_path[index+1][0], shortest_path[index+1][1]))
                 # print('Path to display: ', display_me)"""
 
-            temp_dict = {'aircraft_position': [50, 50],
+            temp_dict = {  # 'aircraft_position': [50, 50],
                          'uplift_position': list_of_detected_uplifts,
                          'vec_field_data': coordinates_for_plot}
             send_client(destination_port=1501, input_dict=temp_dict, logging=False)
 
-            dict_for_path_planning = {'aircraft_position': [50, 50],
+            dict_for_path_planning = {  # 'aircraft_position': [50, 50],
                                       'uplift_position': list_of_detected_uplifts}
             send_client(destination_port=1507, input_dict=dict_for_path_planning, logging=False)
 

@@ -8,9 +8,6 @@ from math import sqrt, sin, cos
 from numpy import angle
 import json
 import os
-from MBSEF21GUI.experiment_flags import experiment2_flag
-
-
 
 
 def process_image_and_extract_line_segments(map_file):
@@ -184,34 +181,31 @@ def generate_test_vector_field(weather_data):
     return vect_field, coordinates_for_plot, central_points_of_boxes, left_edge_points_of_boxes
 
 
-
-def interraction_field_to_obstacle(vec_field_data):
-    (vect_field, coordinates_for_plot,central_points_of_boxes,left_edge_points_of_boxes)     = vec_field_data
+def interraction_field_to_obstacle(vec_field_data, experiment_flag):
+    (vect_field, coordinates_for_plot, central_points_of_boxes, left_edge_points_of_boxes) = vec_field_data
     
     fil_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    global experiment2_flag
-    if experiment2_flag:
-        (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imagFORGED.svg")
+
+    if experiment_flag == '2':
+        (coefficients_list, derived_line_angle_list, middle_point_list, node_list) = process_image_and_extract_line_parameters(fil_dir+"/imagFORGED.svg")
     else:
-        (coefficients_list,derived_line_angle_list,middle_point_list,node_list) = process_image_and_extract_line_parameters(fil_dir+"/imag.svg")
+        (coefficients_list, derived_line_angle_list, middle_point_list, node_list) = process_image_and_extract_line_parameters(fil_dir+"/imag.svg")
     
-    result_list=[]
-    
-    
+    result_list = []
+
     # print(left_edge_points_of_boxes)
-    for n,segment_angle in enumerate(derived_line_angle_list):
+    for n, segment_angle in enumerate(derived_line_angle_list):
         
         value_of_point = middle_point_list[n]
-        x_found_index=0
-        y_found_index=0
+        x_found_index = 0
+        y_found_index = 0
         
-        for index,val in enumerate(left_edge_points_of_boxes):
+        for index, val in enumerate(left_edge_points_of_boxes):
             if value_of_point[0] < val:
                 break
             else:
                 x_found_index = index
-        for index,val in enumerate(left_edge_points_of_boxes):
+        for index, val in enumerate(left_edge_points_of_boxes):
             if value_of_point[1] < val:
                 break
             else:
