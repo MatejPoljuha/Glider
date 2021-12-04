@@ -52,7 +52,7 @@ for i in range(0, 11, 1):
 
         # print (api_data)
 
-        if api_data['cod'] == '404':
+        if str(api_data['cod']) == '404':
             pass
             #print("Invalid city: {}, please check your city name".format(location))
         else:
