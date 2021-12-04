@@ -19,6 +19,10 @@ def run_weather_streamer(weather_refresh_interval, experiment_flag):
         print('EXPERIMENT 2')
         for file in glob.glob("{}/weatherFORGED.json".format(fil_dir)):
             json_file_list.append(file)
+    if experiment_flag == '1' or experiment_flag == '3':
+        print('EXPERIMENT ' + experiment_flag)
+        for file in glob.glob("{}/experiment_1_3_scenario.json".format(fil_dir)):
+            json_file_list.append(file)
     elif experiment_flag == '0':
         for file in glob.glob("{}/*.json".format(fil_dir)):
             if file != "{}/weatherFORGED.json".format(fil_dir) and file != "{}/weatherSRC.json".format(fil_dir):

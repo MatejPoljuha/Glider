@@ -24,9 +24,13 @@ experiment_flag = '0'
 weather_refresh_interval = int(sys.argv[1])
 time_spent_at_node = int(sys.argv[2])
 if len(sys.argv) >= 4:
-    experiment_input_flag = sys.argv[2]
-    if experiment_input_flag[-1] == "2":
+    experiment_input_flag = sys.argv[3]
+    if experiment_input_flag[-1] == "1":
+        experiment_flag = '1'
+    elif experiment_input_flag[-1] == "2":
         experiment_flag = '2'
+    elif experiment_input_flag[-1] == "3":
+        experiment_flag = '3'
 
 
 

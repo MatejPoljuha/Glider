@@ -18,20 +18,20 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
         try:
             potential_paths = nx.shortest_simple_paths(graph, 'start', 'dest', weight='weight')
             for potential_path in potential_paths:
-                if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
-                    algorithm_taken_time = time() - algorithm_start_time
-                    # if the algorithm takes more than a reasonable amount of time to find a solution, stop it and say there is no path
-                    if algorithm_taken_time > min(weather_refresh_interval/0.66, weather_refresh_interval - float(time() - last_weather_update), 10):
-                        timed_out = True
-                        raise nx.NetworkXNoPath
+                algorithm_taken_time = time() - algorithm_start_time
+                # if the algorithm takes more than a reasonable amount of time to find a solution, stop it and say there is no path
+                if algorithm_taken_time > min(weather_refresh_interval / 0.66, weather_refresh_interval - float(time() - last_weather_update) - 0.2, 10):
+                    timed_out = True
+                    raise nx.NetworkXNoPath
 
+                if check_path_validity(potential_path, graph, start_alt, dest_alt, glide_ratio, time_spent_at_node):
                     # converts path into display format and sends it to GUI
                     send_path_to_gui(potential_path)
 
                     path_length, altitudes = get_shortest_path_info(potential_path, start_alt)
 
                     return potential_path, algorithm_taken_time, path_length, altitudes
-        except nx.NetworkXNoPath or nx.NetworkXError:
+        except (nx.NetworkXNoPath, nx.NetworkXError):
             algorithm_taken_time = time() - algorithm_start_time
             if timed_out:
                 return 'Timed out', algorithm_taken_time, 0, '-'
