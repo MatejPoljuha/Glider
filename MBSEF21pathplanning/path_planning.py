@@ -20,7 +20,7 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
             for potential_path in potential_paths:
                 algorithm_taken_time = time() - algorithm_start_time
                 # if the algorithm takes more than a reasonable amount of time to find a solution, stop it and say there is no path
-                if algorithm_taken_time > min(weather_refresh_interval / 0.66, weather_refresh_interval - float(time() - last_weather_update) - 0.2, 10):
+                if algorithm_taken_time > min(weather_refresh_interval / 0.66, weather_refresh_interval - float(time() - last_weather_update) - 0.1, 10):
                     timed_out = True
                     raise nx.NetworkXNoPath
 
