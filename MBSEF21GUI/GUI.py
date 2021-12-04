@@ -66,10 +66,6 @@ def getInputBoxValue():
 
 def RunNavigation():
     global tInput
-    try:
-        starting_position = [min(int(tInput0.get().split(',')[0]), 511), min(int(tInput0.get().split(',')[1]), 511)]
-    except ValueError:
-        starting_position = [1, 1]
     message = {'destination': destination_position,
                'dest_altitude': tInput1.get(),
                'start_altitude': tInput2.get(),
@@ -81,7 +77,7 @@ def RunNavigation():
 root = Tk()
 
 # This is the section of code which creates the main window
-root.geometry('1000x600')
+root.geometry('1100x600')
 root.configure(background='#F0F8FF')
 root.title('Glider Navigation System')
 root.resizable(width=False, height=False)
@@ -129,6 +125,12 @@ my_label.place(x=800, y=400)
 tInput2 = Entry(root, textvariable=StringVar(root, value='700'))
 tInput2.place(x=800, y=450)
 
+my_label = Label(root, text="Destination position (1-511,1-511)", bg='#F0F8FF', font=('arial', 12, 'normal'))
+my_label.place(x=800, y=100)
+
+tInput4 = Entry(root, textvariable=StringVar(root, value='50,50'))
+tInput4.place(x=800, y=150)
+
 
 
 
@@ -151,7 +153,10 @@ vec_field_data=([],[],[],[])
 def callback(event):
     global destination_position, aircraft_position, destinationSET
     # print ("clicked at", event.x, event.y)
-    destination_position = [event.x, event.y]
+    # destination_position = [event.x, event.y]
+    tInput4.delete(0, END)
+    tInput4.insert(0, '{},{}'.format(event.x, event.y))
+
 
     
     
@@ -170,7 +175,7 @@ def refreshCanvas():
     global data_queue_GUI
     global navigation_line
    
-    global destination_position, aircraft_position, destinationSET, uplift_position, navigation_line, vec_field_data
+    global starting_position, destination_position, aircraft_position, destinationSET, uplift_position, navigation_line, vec_field_data
   
     #aircraft_position = [300 ,100]
     
@@ -190,11 +195,13 @@ def refreshCanvas():
             path_display_form.append((element[0], element[1], navigation_line[index + 1][0], navigation_line[index + 1][1]))
         navigation_line = path_display_form
 
-    # needs this try block if something other than a number is put into the input box
+    # needs this try-except block if something other than a number is put into the input box
     try:
         starting_position = [min(int(tInput0.get().split(',')[0]), 511), min(int(tInput0.get().split(',')[1]), 511)]
-    except ValueError:
+        destination_position = [min(int(tInput4.get().split(',')[0]), 511), min(int(tInput4.get().split(',')[1]), 511)]
+    except (ValueError, IndexError):
         starting_position = [1, 1]
+        destination_position = [1, 1]
 
     imgA = make_overlay(destination_position, starting_position, uplift_position, navigation_line, vec_field_data,
                         experiment_flag)

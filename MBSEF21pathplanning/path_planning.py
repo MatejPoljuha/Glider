@@ -267,7 +267,7 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
 
             # creates graph structure as networkx complete undirected weighted graph
             graph = create_graph(node_raw_data, starting_position, destination_position, glide_ratio, start_alt)
-            print(graph.edges('dest'))
+
             # visualize_graph(graph, graph.nodes(data='coordinates'))
 
             shortest_path, algorithm_run_time, shortest_path_length, altitude_changes = calculate_plan(graph,
