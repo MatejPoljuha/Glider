@@ -208,22 +208,17 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
 
     node_raw_data = None
 
-    # time in seconds spent at a node, move this out, should be in some sort of simulation module
-    # time_spent_at_node = 180
-
     # glide ratio * scaling factor for 100 m
     glide_ratio = 50
 
     # default log values
     run_results = ''
-
     run_counter = 0
     run_reason = ''
     algorithm_run_time = 0
     length_of_path = 0
     altitude_changes = []
 
-    # weather_refresh_interval = 1
     last_weather_update = time()
 
     while True:
@@ -232,12 +227,6 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
 
         if not incoming_dps_data_queue.empty():
             received_dps_data = incoming_dps_data_queue.get()
-
-            """node_indexes, node_coordinates, node_uplift_data, aircraft_position = [], [], [], []"""
-
-            # starting position, [x,y]
-            # starting_position = received_dps_data['aircraft_position']
-
             # raw node data as received from DPS
             node_raw_data = received_dps_data['uplift_position']
             weather_update = True
@@ -251,7 +240,6 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
             dest_alt = int(received_gui_data['dest_altitude'])
             # received from GUI for purposes of simulation but in reality would be from DPS
             starting_position = received_gui_data['starting_position']
-            # weather_refresh_interval = received_gui_data['weather_refresh_interval']
             destination_update = True
 
         if destination_position != [0, 0] and (weather_update or destination_update):
@@ -291,5 +279,5 @@ def run_path_planning(weather_refresh_interval, time_spent_at_node):
             logging.info(run_results + ' | ' + str(shortest_path) + ' | ' + str(altitude_changes))
 
         if not weather_update and not destination_update:
-            # data will not be updated faster than this so we save some performance with this, queues preserve data that arrives during this window
+            # data will not be updated faster than this, so we save some performance with this, queues preserve data that arrives during this window
             sleep(0.1)

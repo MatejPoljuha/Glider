@@ -152,8 +152,6 @@ navigation_line=[]
 vec_field_data=([],[],[],[])
 def callback(event):
     global destination_position, aircraft_position, destinationSET
-    # print ("clicked at", event.x, event.y)
-    # destination_position = [event.x, event.y]
     tInput4.delete(0, END)
     tInput4.insert(0, '{},{}'.format(event.x, event.y))
 
