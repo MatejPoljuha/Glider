@@ -2,7 +2,7 @@ Requirements:
 - Python 3.9
     Modules:
         - Pillow
-        - svg.path
+        - svg.path (the module name is really "svg.path" and not "svg")
         - svgwrite
         - networkx
         - numpy
