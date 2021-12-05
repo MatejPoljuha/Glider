@@ -123,7 +123,7 @@ def generate_test_vector_field_origin():
 
 def generate_test_vector_field(weather_data):
     fil_dir = os.path.dirname(os.path.abspath(__file__))
-    #print(fil_dir)
+
     filename = fil_dir+'/dictionary.json'
 
     #while not data_queue.empty():
@@ -248,7 +248,6 @@ def interraction_field_to_obstacle(vec_field_data, experiment_flag):
         # x_pos and y_pos need to be real gps coordinates
         # rel_strength needs to be how many meters the glider rises (altitude) in this node
 
-        # send the node data to Bartek and to Matej separately
         # for the GUI to display proper colours for uplift strength in nodes, rel_strength should be scaled down from 0 to 1
         
             result_list.append(output_dict)
